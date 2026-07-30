@@ -1,0 +1,220 @@
+# The `<hope-metahuman>` element
+
+A chattable 3D metahuman in one tag, for pages that have no build step and no
+application stack.
+
+> This documents `@hope-metahuman/embed`, which is commercially licensed and is
+> not distributed in this repository. See
+> [self-hosting.md](./self-hosting.md) for how to obtain it.
+
+## Loading it
+
+On a static page, use the standalone bundle. It embeds three.js, so this is the
+entire integration — no import map, nothing else to load:
+
+```html
+<script
+  type="module"
+  src="https://cdn.hope-lms.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
+></script>
+
+<hope-metahuman
+  base-url="https://api.hope-metahuman.example"
+  token-endpoint="/api/hope/stream-token"
+  model-url="/models/your-avatar.glb"
+  voice-id="a1b2c3d4"
+  voice-model="sonic-3"
+></hope-metahuman>
+```
+
+In an application with a bundler, install the package instead so your own
+three.js is the only copy in the output:
+
+```bash
+npm install @hope-metahuman/embed three
+```
+
+```ts
+import '@hope-metahuman/embed';
+```
+
+The element renders its own chat interface in a shadow root: an avatar canvas, a
+transcript, a text input, a microphone button, and a start gate. It handles
+microphone permission, transcription, the agent turn, audio playback, and lip
+sync.
+
+A complete working page is in
+[`examples/static-chat`](../../examples/static-chat).
+
+---
+
+## Attributes
+
+### Connection
+
+| Attribute        | Required | Description                                              |
+| ---------------- | -------- | -------------------------------------------------------- |
+| `base-url`       | yes      | Origin of your HOPE Metahuman Service deployment         |
+| `token-endpoint` | —        | URL on your backend returning `{ token, expiresIn }`     |
+| `token`          | —        | A machine token you already have. Expires in ten minutes |
+| `voice-id`       | yes      | Voice from your tenant's catalogue                       |
+| `voice-model`    | —        | Synthesis model. Defaults to `sonic-3`                   |
+
+Supply exactly one credential source. **Never put an API key secret in `token`**
+— it does not expire and the attribute is readable by anyone who views the page.
+For anything beyond a local experiment, use `token-endpoint`, or set the
+`tokenProvider` property from script.
+
+### Conversation
+
+| Attribute        | Default   | Description                                        |
+| ---------------- | --------- | -------------------------------------------------- |
+| `session-id`     | generated | Persist to resume a conversation across page loads |
+| `metahuman-name` | —         | The persona's own name                             |
+| `user-name`      | —         | Name of the person speaking                        |
+| `language`       | `en-US`   | BCP-47 tag for transcription and replies           |
+| `archetype-id`   | `3`       | Behavioural persona, 1–8                           |
+
+### Appearance
+
+| Attribute        | Default              | Description                                                                |
+| ---------------- | -------------------- | -------------------------------------------------------------------------- |
+| `model-url`      | —                    | GLB avatar. Without it, the element is chat-only and requests no animation |
+| `framing`        | `head`               | `head`, `bust`, or `full`                                                  |
+| `background`     | transparent          | Canvas background colour                                                   |
+| `idle-animation` | on                   | `off` disables blink and gaze                                              |
+| `mode`           | —                    | `avatar` hides the transcript and input, leaving only the face             |
+| `mic`            | —                    | `off` starts without the microphone; the button still enables it           |
+| `greeting`       | —                    | An opening line shown before the first turn                                |
+| `placeholder`    | `Say something…`     | Text input placeholder                                                     |
+| `start-label`    | `Start conversation` | Start button text                                                          |
+| `start-hint`     |                      | Text under the start button                                                |
+
+Omitting `model-url` also turns off animation generation server-side, which
+saves the tenant the cost of rendering blendshapes nothing will display.
+
+## The start gate
+
+Nothing connects until the visitor presses **Start conversation**. This is not a
+stylistic choice: browsers discard audio scheduled by a page the user has not
+interacted with, so a metahuman that auto-starts would talk to an empty room.
+The gate turns that constraint into a deliberate opt-in, which is also what you
+want before requesting microphone permission.
+
+To use your own button, hide the gate with CSS and call `start()`:
+
+```js
+document.querySelector('#my-button').addEventListener('click', () => {
+  document.querySelector('hope-metahuman').start();
+});
+```
+
+`start()` must still run inside a real user gesture.
+
+## Properties and methods
+
+```ts
+const el = document.querySelector('hope-metahuman');
+
+el.tokenProvider = myProvider; // takes precedence over the attributes
+el.scenarioFields = [{ name: 'unit', value: 'Ranger Battalion' }];
+
+await el.start(); // must be inside a user gesture
+await el.send('Hello'); // resolves when the reply finishes
+el.interrupt(); // cut the current reply short
+await el.setMicrophoneEnabled(true);
+el.reset(); // clear memory and the transcript
+await el.stop(); // tear down, back to the start gate
+
+el.session; // the underlying MetahumanSession, or null before start()
+el.avatar; // the underlying AvatarRenderer, or null with no model-url
+```
+
+`session` and `avatar` are escape hatches: anything the element does not expose
+as an attribute can be reached through them.
+
+## Events
+
+All events bubble, cross shadow boundaries, and carry their payload in `detail`.
+
+| Event               | `detail`                                                       |
+| ------------------- | -------------------------------------------------------------- |
+| `hope-ready`        | `{ sessionId }`                                                |
+| `hope-state`        | `{ state: 'idle' \| 'listening' \| 'thinking' \| 'speaking' }` |
+| `hope-user-message` | `{ text }`                                                     |
+| `hope-reply`        | `{ text }`                                                     |
+| `hope-error`        | `{ error }`                                                    |
+
+```js
+el.addEventListener('hope-reply', (event) => {
+  analytics.track('metahuman_reply', { length: event.detail.text.length });
+});
+```
+
+## Theming
+
+The interface is in a shadow root, so page CSS cannot reach inside it. Style it
+through custom properties, which do pierce the boundary:
+
+```css
+hope-metahuman {
+  --hope-accent: #6d5efc;
+  --hope-accent-contrast: #ffffff;
+  --hope-surface: rgba(17, 21, 33, 0.72);
+  --hope-surface-raised: rgba(30, 36, 52, 0.9);
+  --hope-border: rgba(255, 255, 255, 0.1);
+  --hope-text: #f4f5f7;
+  --hope-text-muted: #97a0b5;
+  --hope-danger: #ff6b6b;
+  --hope-radius: 16px;
+  --hope-font: 'Inter', system-ui, sans-serif;
+  --hope-stage-background: radial-gradient(120% 90% at 50% 0%, #2a3350, #080a12);
+
+  width: 100%;
+  height: 600px;
+}
+```
+
+Set the element's own size with ordinary CSS; the canvas follows its container.
+For a light interface, override `--hope-surface`, `--hope-text`, and
+`--hope-stage-background` together — the defaults assume a dark stage, and
+changing only one of the three produces unreadable contrast.
+
+## Accessibility
+
+The transcript is an `aria-live` region, so replies are announced to screen
+readers as they complete. The microphone button carries `aria-pressed`, controls
+are labelled and keyboard-reachable in visual order, and every interactive
+element meets the 44 px touch target minimum.
+
+Because a spoken interface excludes some users by construction, the text input
+is a first-class path rather than a fallback: everything the metahuman can be
+told by voice can be typed, and every reply appears as text as well as audio.
+
+## Content Security Policy
+
+Microphone capture compiles an `AudioWorklet` from a `blob:` URL, so a strict
+policy needs:
+
+```
+worker-src blob:;
+connect-src 'self' https://api.hope-metahuman.example wss://api.hope-metahuman.example;
+```
+
+Add `script-src blob:` for browsers that do not implement `worker-src`. The
+element sets no inline styles that would require `unsafe-inline` beyond its own
+shadow stylesheet, and it never uses `unsafe-eval`. If `blob:` is not
+permissible in your environment, host the worklet yourself — see the
+[core package README](../core/README.md#the-audioworklet-and-csp) — and drive
+the session directly rather than through this element.
+
+## Browser support
+
+Chrome, Edge, Safari 16.4+, and Firefox. All four have custom elements,
+`AudioWorklet`, and WebGL2. Speech requires a secure context (HTTPS or
+`localhost`), which browsers enforce for microphone access regardless.
+
+## Licence
+
+This documentation is [MIT](../LICENSE) licensed. The package it describes is
+proprietary and commercially licensed — see [../NOTICE.md](../NOTICE.md).

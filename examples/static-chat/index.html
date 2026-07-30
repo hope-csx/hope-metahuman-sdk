@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>HOPE Metahuman Service — Static embed example</title>
+    <meta
+      name="description"
+      content="A plain static web page that embeds a 3D metahuman you can talk to, using the HOPE Metahuman Service SDK."
+    />
+    <link rel="stylesheet" href="./styles.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='16' r='15' fill='%234f7cff'/%3E%3Ccircle cx='16' cy='13' r='5' fill='%23fff'/%3E%3Cpath d='M6 30a10 10 0 0 1 20 0z' fill='%23fff'/%3E%3C/svg%3E"
+    />
+
+    <!--
+      The SDK bundle is proprietary and is NOT part of this repository. It is
+      distributed under a commercial licence, either from the CDN below or as a
+      download you host yourself. Everything else on this page is MIT licensed.
+
+      The bundle embeds its own copy of three.js, so there is no import map and
+      nothing else to load — one script tag is the whole integration.
+
+      This page prefers a self-hosted copy under ./vendor/ and falls back to the
+      CDN, which is how a real deployment behaves too: `pnpm vendor` downloads
+      the bundle for air-gapped networks, where an external script origin is
+      either blocked outright or a compliance finding. See docs/self-hosting.md.
+    -->
+    <script type="module" src="./sdk-loader.js"></script>
+  </head>
+
+  <body>
+    <header class="masthead">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true"></span>
+        <div>
+          <h1>HOPE Metahuman Service</h1>
+          <p>Static embed example</p>
+        </div>
+      </div>
+      <button id="settings-toggle" type="button" class="ghost" aria-expanded="false">
+        Connection settings
+      </button>
+    </header>
+
+    <main>
+      <section class="stage-column" aria-label="Metahuman">
+        <hope-metahuman
+          id="metahuman"
+          voice-model="sonic-3"
+          framing="head"
+          greeting="Hello. Configure a connection, press start, and talk to me."
+          placeholder="Type a message, or use the microphone…"
+        ></hope-metahuman>
+
+        <p class="hint">
+          Audio and microphone access start only when you press the start button — browsers require
+          a real interaction before a page may play sound.
+        </p>
+      </section>
+
+      <aside class="side-column">
+        <section id="settings" class="card" hidden aria-label="Connection settings">
+          <h2>Connection</h2>
+
+          <form id="settings-form">
+            <label>
+              <span>Service base URL</span>
+              <input
+                name="baseUrl"
+                type="url"
+                required
+                placeholder="https://api.hope-metahuman.example"
+              />
+              <small>The HTTPS origin of your deployment.</small>
+            </label>
+
+            <fieldset>
+              <legend>Credential</legend>
+
+              <label>
+                <span>Token endpoint</span>
+                <input name="tokenEndpoint" type="text" placeholder="/api/hope/stream-token" />
+                <small>
+                  Recommended. A URL on <em>your own</em> backend that authenticates the visitor and
+                  returns <code>{ "token": "…", "expiresIn": 600 }</code>.
+                </small>
+              </label>
+
+              <label>
+                <span>Machine token</span>
+                <input name="token" type="password" autocomplete="off" placeholder="eyJhbGciOi…" />
+                <small class="warn">
+                  Development only. Held in memory and never written to storage. Expires in ten
+                  minutes and cannot refresh. Never paste an API key <em>secret</em> here.
+                </small>
+              </label>
+            </fieldset>
+
+            <label>
+              <span>Avatar model URL</span>
+              <input name="modelUrl" type="text" placeholder="/models/your-avatar.glb" />
+              <small
+                >A GLB with ARKit-compatible morph targets. Chat still works without one.</small
+              >
+            </label>
+
+            <div class="row">
+              <label>
+                <span>Voice ID</span>
+                <input name="voiceId" type="text" required placeholder="a1b2c3d4-…" />
+              </label>
+              <label>
+                <span>Voice model</span>
+                <input name="voiceModel" type="text" value="sonic-3" required />
+              </label>
+            </div>
+
+            <div class="row">
+              <label>
+                <span>Persona name</span>
+                <input name="metahumanName" type="text" placeholder="Dana" />
+              </label>
+              <label>
+                <span>Language</span>
+                <input name="language" type="text" value="en-US" />
+              </label>
+            </div>
+
+            <div class="actions">
+              <button type="submit" class="primary">Apply and reload avatar</button>
+              <button type="button" id="clear-settings" class="ghost">Clear saved settings</button>
+            </div>
+
+            <p class="storage-note">
+              Everything except the token is saved in this browser's local storage so you do not
+              have to retype it.
+            </p>
+          </form>
+        </section>
+
+        <section class="card" aria-label="Event log">
+          <h2>Events</h2>
+          <p class="card-intro">
+            Every event the <code>&lt;hope-metahuman&gt;</code> element dispatches, newest last.
+          </p>
+          <ol id="event-log" class="event-log" aria-live="polite"></ol>
+        </section>
+      </aside>
+    </main>
+
+    <footer>
+      <p>
+        Built with <code>@hope-metahuman/embed</code>, a commercially licensed SDK. This example is
+        <a href="https://github.com/cornerstonex/hope-metahuman-sdk">MIT licensed</a>.
+      </p>
+    </footer>
+
+    <!--
+      The embed bundle registers <hope-metahuman> on import. app.js reads
+      ./config.js for defaults and wires the settings form to the element.
+    -->
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

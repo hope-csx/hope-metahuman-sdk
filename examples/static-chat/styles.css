@@ -1,0 +1,393 @@
+/*
+ * Styling for the static embed example.
+ *
+ * Plain CSS with no preprocessor or build step, matching the point of the
+ * example: everything here can be copied into any static site as-is.
+ */
+
+:root {
+  color-scheme: dark;
+  --bg: #070911;
+  --surface: #101423;
+  --surface-raised: #171c2e;
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #e9edf7;
+  --text-muted: #8e97ae;
+  --accent: #4f7cff;
+  --warn: #f0b429;
+  --danger: #ff6b6b;
+  --radius: 16px;
+  --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(80% 60% at 12% -10%, rgba(79, 124, 255, 0.16), transparent 60%), var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  line-height: 1.55;
+}
+
+a {
+  color: var(--accent);
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.92em;
+}
+
+/* Masthead ---------------------------------------------------------------- */
+
+.masthead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px clamp(16px, 4vw, 40px);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.brand-mark {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--accent), #8b5cf6);
+  box-shadow: 0 6px 20px rgba(79, 124, 255, 0.35);
+}
+
+.brand h1 {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.brand p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Layout ------------------------------------------------------------------ */
+
+main {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.55fr) minmax(320px, 1fr);
+  gap: 22px;
+  align-items: start;
+  padding: 24px clamp(16px, 4vw, 40px) 32px;
+}
+
+@media (max-width: 940px) {
+  main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.stage-column {
+  display: grid;
+  gap: 12px;
+}
+
+hope-metahuman {
+  min-height: min(66vh, 620px);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+}
+
+.hint {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+.side-column {
+  display: grid;
+  gap: 18px;
+  position: sticky;
+  top: 24px;
+}
+
+@media (max-width: 940px) {
+  .side-column {
+    position: static;
+  }
+}
+
+/* Cards ------------------------------------------------------------------- */
+
+.card {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.card h2 {
+  margin: 0 0 4px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.card-intro {
+  margin: 0 0 12px;
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+/* Form -------------------------------------------------------------------- */
+
+form {
+  display: grid;
+  gap: 14px;
+  margin-top: 12px;
+}
+
+fieldset {
+  display: grid;
+  gap: 14px;
+  margin: 0;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.18);
+}
+
+legend {
+  padding: 0 6px;
+  color: var(--text-muted);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  font-size: 13px;
+}
+
+label > span {
+  font-weight: 500;
+}
+
+label small {
+  color: var(--text-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+label small.warn {
+  color: var(--warn);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+input {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.32);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+input::placeholder {
+  color: #66708a;
+}
+
+input:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+button {
+  height: 38px;
+  padding: 0 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    transform 140ms ease;
+}
+
+button:hover {
+  background: #212841;
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button.primary {
+  background: var(--accent);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 500;
+}
+
+button.primary:hover {
+  background: #3f6bf0;
+}
+
+button.ghost {
+  background: transparent;
+}
+
+.storage-note {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+/* Event log --------------------------------------------------------------- */
+
+.event-log {
+  display: grid;
+  gap: 2px;
+  max-height: 300px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  scrollbar-width: thin;
+}
+
+.event-log:empty::after {
+  content: 'Nothing yet.';
+  color: var(--text-muted);
+  font-family: var(--font);
+}
+
+.event-log li {
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  gap: 8px;
+  align-items: baseline;
+  padding: 5px 6px;
+  border-radius: 6px;
+}
+
+.event-log li:nth-child(odd) {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.event-log time {
+  color: #5c6580;
+}
+
+.event-log .tag {
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+.event-log li[data-kind='error'] .tag {
+  background: rgba(255, 107, 107, 0.16);
+  color: var(--danger);
+}
+
+.event-log li[data-kind='reply'] .tag,
+.event-log li[data-kind='ready'] .tag {
+  background: rgba(79, 124, 255, 0.18);
+  color: #9fb6ff;
+}
+
+.event-log li span:last-child {
+  overflow-wrap: anywhere;
+}
+
+/* Missing SDK bundle ------------------------------------------------------ */
+
+/*
+ * Shown by sdk-loader.js when the commercially licensed bundle is neither
+ * vendored nor reachable on the CDN. Without it the page renders its full
+ * chrome and then does nothing, which reads as a bug rather than a missing
+ * dependency.
+ */
+.sdk-missing {
+  margin: 0;
+  padding: 14px clamp(16px, 4vw, 40px);
+  background: color-mix(in srgb, var(--warn) 16%, var(--surface));
+  border-bottom: 1px solid var(--warn);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.sdk-missing strong {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.sdk-missing p {
+  margin: 0;
+  color: var(--text-muted);
+  max-width: 80ch;
+}
+
+/* Footer ------------------------------------------------------------------ */
+
+footer {
+  padding: 18px clamp(16px, 4vw, 40px);
+  border-top: 1px solid var(--border);
+  color: var(--text-muted);
+  font-size: 13px;
+}
+
+footer p {
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,93 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Format and lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Check formatting
+        run: pnpm format:check
+
+      - name: Lint
+        run: pnpm lint
+
+  smoke:
+    name: Browser smoke test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      # The SDK bundle is commercially licensed and is not available to this
+      # public repository, so this covers the example's own behaviour: that the
+      # page renders, that settings reach the element, and that a missing bundle
+      # is reported rather than failing silently. The full run — custom element,
+      # WebGL, and session lifecycle — happens in the private monorepo that
+      # builds the bundle, using this same script with HOPE_SDK_BUNDLE set.
+      - name: Smoke test the example
+        run: pnpm smoke
+
+  licence-guard:
+    name: No proprietary artifacts committed
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Everything tracked here is MIT. The SDK bundle is downloaded at need and
+      # git-ignored; a committed copy would relicense proprietary code by
+      # accident, and would be near-impossible to walk back once the repository
+      # is public. GLB avatars are excluded for the same reason — they are
+      # licensed assets, and integrators bring their own.
+      - name: Reject SDK bundles and 3D assets
+        run: |
+          offenders=$(git ls-files | grep -Ei '\.(glb|gltf|fbx)$|hope-metahuman-embed.*\.js$' || true)
+          if [ -n "$offenders" ]; then
+            echo "::error::Files that must not be committed to this repository:"
+            echo "$offenders"
+            exit 1
+          fi
+          echo "No proprietary bundles or 3D assets are tracked."
+
+  ci-pass:
+    name: CI passed
+    runs-on: ubuntu-latest
+    needs: [verify, smoke, licence-guard]
+    steps:
+      - run: echo "All CI checks passed."

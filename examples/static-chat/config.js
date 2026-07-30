@@ -1,0 +1,48 @@
+/**
+ * Preconfiguration for the static example.
+ *
+ * Edit these values to point the page at your deployment and skip retyping
+ * them on every visit. Anything you save in the settings panel overrides what
+ * is here, and the panel opens automatically while `baseUrl` and `voiceId` are
+ * still empty.
+ *
+ * Never put an API key secret in this file. It is served to the browser
+ * verbatim, so anything in it is public to every visitor. The only credential
+ * that belongs in a browser is a machine token, which expires in ten minutes —
+ * and even that is better fetched from `tokenEndpoint` than embedded here.
+ */
+export default {
+  /** HTTPS origin of your HOPE Metahuman Service deployment. */
+  baseUrl: '',
+
+  /**
+   * A URL on your own backend that authenticates the visitor and returns
+   * `{ "token": "…", "expiresIn": 600 }`. This is the recommended credential
+   * path for anything that is not a local experiment.
+   *
+   * Example: '/api/hope/stream-token'
+   */
+  tokenEndpoint: '',
+
+  /**
+   * GLB avatar with ARKit-compatible morph targets.
+   *
+   * No models are distributed with this repository — they are separately
+   * licensed assets. Bring your own ARKit-rigged GLB, or point this at a
+   * platform-hosted model if your deployment is entitled to one. See
+   * docs/avatars.md.
+   *
+   * Leave it empty to run chat-only, with no face.
+   */
+  modelUrl: '',
+
+  /** Voice from your tenant's catalogue. */
+  voiceId: '',
+  voiceModel: 'sonic-3',
+
+  /** The persona's own name, which the agent may use when introducing itself. */
+  metahumanName: '',
+
+  /** BCP-47 tag for transcription and replies. */
+  language: 'en-US',
+};
