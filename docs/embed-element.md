@@ -77,21 +77,63 @@ For anything beyond a local experiment, use `token-endpoint`, or set the
 
 ### Appearance
 
-| Attribute        | Default              | Description                                                                |
-| ---------------- | -------------------- | -------------------------------------------------------------------------- |
-| `model-url`      | —                    | GLB avatar. Without it, the element is chat-only and requests no animation |
-| `framing`        | `head`               | `head`, `bust`, or `full`                                                  |
-| `background`     | transparent          | Canvas background colour                                                   |
-| `idle-animation` | on                   | `off` disables blink and gaze                                              |
-| `mode`           | —                    | `avatar` hides the transcript and input, leaving only the face             |
-| `mic`            | —                    | `off` starts without the microphone; the button still enables it           |
-| `greeting`       | —                    | An opening line shown before the first turn                                |
-| `placeholder`    | `Say something…`     | Text input placeholder                                                     |
-| `start-label`    | `Start conversation` | Start button text                                                          |
-| `start-hint`     |                      | Text under the start button                                                |
+| Attribute            | Default              | Description                                                                |
+| -------------------- | -------------------- | -------------------------------------------------------------------------- |
+| `model-url`          | —                    | GLB avatar. Without it, the element is chat-only and requests no animation |
+| `framing`            | `head`               | `head`, `bust`, or `full`                                                  |
+| `background`         | transparent          | Canvas background colour                                                   |
+| `idle-animation`     | on                   | `off` disables blink and gaze                                              |
+| `camera-fov`         | `28`                 | Vertical field of view in degrees; lower is a longer, flatter lens         |
+| `camera-position`    | automatic            | `x, y, z` camera placement. Overrides `framing`                            |
+| `camera-target`      | automatic            | `x, y, z` point the camera looks at                                        |
+| `lock-root-rotation` | on                   | `off` lets the model's idle clip turn the avatar away from the camera      |
+| `mode`               | —                    | `avatar` hides the transcript and input, leaving only the face             |
+| `mic`                | —                    | `off` starts without the microphone; the button still enables it           |
+| `greeting`           | —                    | An opening line shown before the first turn                                |
+| `placeholder`        | `Say something…`     | Text input placeholder                                                     |
+| `start-label`        | `Start conversation` | Start button text                                                          |
+| `start-hint`         |                      | Text under the start button                                                |
 
 Omitting `model-url` also turns off animation generation server-side, which
 saves the tenant the cost of rendering blendshapes nothing will display.
+
+### Orientation and camera
+
+The avatar faces the viewer by default. Avatar GLBs pose facing the camera, but
+the idle body animation baked into them commonly yaws the whole skeleton — about
+32° for the Avaturn idle these models ship with — so the element discards that
+one rotation track and keeps the rest of the body animation. Set
+`lock-root-rotation="off"` if your model's clip is meant to turn it.
+
+To replace the automatic framing, give the camera a position and a target:
+
+```html
+<hope-metahuman
+  model-url="/models/your-avatar.glb"
+  camera-fov="20"
+  camera-position="0, 1.62, 0.75"
+  camera-target="0, 1.6, 0"
+></hope-metahuman>
+```
+
+Coordinates are in the model's own world space. For an avatar authored at human
+scale in metres with the feet at the origin, eye level is around `y = 1.6`. A
+malformed value is ignored rather than breaking the page, falling back to
+automatic framing.
+
+For values computed at runtime, set the `cameraOptions` property before
+`start()`; it takes precedence over the attributes.
+
+```js
+document.querySelector('hope-metahuman').cameraOptions = {
+  fov: 20,
+  position: [0, 1.62, 0.75],
+  target: [0, 1.6, 0],
+};
+```
+
+See [three-renderer.md](./three-renderer.md) for the full explanation of why the
+root rotation is dropped.
 
 ## The start gate
 

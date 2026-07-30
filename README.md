@@ -252,14 +252,14 @@ pnpm example       # serve the static example on :4173
 The example runs without `pnpm vendor` too: it falls back to the CDN, and if
 neither is reachable it says so on the page rather than failing silently.
 
-| Script                              | What it does                                                        |
-| ----------------------------------- | ------------------------------------------------------------------- |
-| `pnpm vendor`                       | Downloads the SDK bundle into the example and verifies its SRI hash |
-| `pnpm example`                      | Serves the static example on `:4173`                                |
-| `pnpm smoke`                        | Drives the example in a real browser                                |
-| `pnpm lint`                         | Lints the examples and scripts                                      |
-| `pnpm format` / `pnpm format:check` | Prettier                                                            |
-| `pnpm clean`                        | Removes the vendored bundle                                         |
+| Script                              | What it does                                                                                                                                   |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm vendor`                       | Downloads the SDK bundle into the example and verifies its SRI hash                                                                            |
+| `pnpm example`                      | Serves the static example on `:4173`, and mints machine tokens for it when `HOPE_API_BASE`, `HOPE_CLIENT_ID`, and `HOPE_CLIENT_SECRET` are set |
+| `pnpm smoke`                        | Drives the example in a real browser                                                                                                           |
+| `pnpm lint`                         | Lints the examples and scripts                                                                                                                 |
+| `pnpm format` / `pnpm format:check` | Prettier                                                                                                                                       |
+| `pnpm clean`                        | Removes the vendored bundle                                                                                                                    |
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for conventions.
 

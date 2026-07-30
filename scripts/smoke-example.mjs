@@ -203,13 +203,25 @@ try {
     hasSettingsForm: document.querySelector('#settings-form') !== null,
     settingsOpen: document.querySelector('#settings')?.hidden === false,
     missingBanner: document.querySelector('.sdk-missing') !== null,
+    configured: Boolean(
+      document.querySelector('hope-metahuman')?.getAttribute('base-url') &&
+      document.querySelector('hope-metahuman')?.getAttribute('voice-id'),
+    ),
   }));
 
   console.log('Page shell');
   check('the page reports where it loaded the SDK from', shell.sdkSource !== undefined);
   check('the element is present in the markup', shell.hasElement);
   check('the settings form rendered', shell.hasSettingsForm);
-  check('the settings panel opens when unconfigured', shell.settingsOpen);
+  // Which way this should go depends on whether config.js has been filled in,
+  // so both directions of the contract are asserted rather than assuming the
+  // example is pristine.
+  check(
+    shell.configured
+      ? 'the settings panel stays closed when already configured'
+      : 'the settings panel opens when unconfigured',
+    shell.configured ? !shell.settingsOpen : shell.settingsOpen,
+  );
 
   if (!bundlePath) {
     console.log('\nWithout the SDK bundle');
@@ -241,6 +253,14 @@ try {
     check('the start gate is shown', element.startLabel.length > 0, element.startLabel);
     check('the greeting is shown', element.greeting);
   }
+
+  // The page opens the settings panel by itself only when it has nothing to
+  // connect with. A developer who has filled in config.js gets a closed panel,
+  // so it is opened explicitly here rather than assumed.
+  if (await page.locator('#settings').isHidden()) {
+    await page.click('#settings-toggle');
+  }
+  await page.waitForSelector('#settings-form [name="baseUrl"]', { state: 'visible' });
 
   await page.fill('#settings-form [name="baseUrl"]', 'https://api.invalid.example');
   await page.fill('#settings-form [name="voiceId"]', 'voice-demo');

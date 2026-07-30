@@ -13,7 +13,7 @@
  */
 export default {
   /** HTTPS origin of your HOPE Metahuman Service deployment. */
-  baseUrl: '',
+  baseUrl: 'http://localhost:3001',
 
   /**
    * A URL on your own backend that authenticates the visitor and returns
@@ -22,7 +22,7 @@ export default {
    *
    * Example: '/api/hope/stream-token'
    */
-  tokenEndpoint: '',
+  tokenEndpoint: '/api/hope/stream-token',
 
   /**
    * GLB avatar with ARKit-compatible morph targets.
@@ -34,14 +34,14 @@ export default {
    *
    * Leave it empty to run chat-only, with no face.
    */
-  modelUrl: '',
+  modelUrl: 'http://localhost:3001/public/models/avatar.glb',
 
   /** Voice from your tenant's catalogue. */
-  voiceId: '',
+  voiceId: 'f014dce5-df0e-4cfa-98e1-bd4bb73bb0b1',
   voiceModel: 'sonic-3',
 
   /** The persona's own name, which the agent may use when introducing itself. */
-  metahumanName: '',
+  metahumanName: 'Nelson',
 
   /** BCP-47 tag for transcription and replies. */
   language: 'en-US',

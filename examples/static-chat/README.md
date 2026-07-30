@@ -35,8 +35,24 @@ The token is deliberately excluded from what gets persisted.
 
 ### Getting a token for a local trial
 
-For experimenting on your own machine, mint a machine token by hand and paste it
-into the settings panel:
+The quickest option is to let `pnpm example` mint tokens for you. Give it API
+key credentials and it serves `/api/hope/stream-token` — the same shape a real
+backend would — so the page refreshes its own credential instead of expiring
+mid-conversation:
+
+```bash
+HOPE_API_BASE=https://api.your-deployment.example \
+HOPE_CLIENT_ID=mhs_… \
+HOPE_CLIENT_SECRET=… \
+  pnpm example
+```
+
+The endpoint only exists when all three variables are set, and the secret stays
+in the server process — the browser sees nothing but the ten-minute token. This
+is still a development convenience: it performs no authentication of its own, so
+anyone who can reach the port can mint a token. Do not run it anywhere public.
+
+Alternatively, mint one by hand and paste it into the settings panel:
 
 ```bash
 curl -X POST https://api.your-deployment.example/oauth/token \
@@ -125,14 +141,15 @@ agent, or playback.
 
 ## When it doesn't work
 
-| Symptom                                          | Cause                                                                        |
-| ------------------------------------------------ | ---------------------------------------------------------------------------- |
-| A banner says the SDK bundle could not be loaded | Not vendored and the CDN is unreachable. Run `pnpm vendor`, or check egress. |
-| "Speech-to-text transport error" immediately     | Bad base URL, expired token, or the origin is not in `CORS_ORIGIN`           |
-| Microphone button does nothing                   | Not on HTTPS or `localhost`, or permission was denied                        |
-| Replies arrive as text but silently              | `unlockAudio` needs a user gesture — use the start button, not autostart     |
-| Face never moves                                 | The GLB has no ARKit morph targets; check `el.avatar.availableShapes`        |
-| Voice sounds wrong                               | The voice ID is not in your tenant's catalogue                               |
+| Symptom                                          | Cause                                                                                        |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------- |
+| A banner says the SDK bundle could not be loaded | Not vendored and the CDN is unreachable. Run `pnpm vendor`, or check egress.                 |
+| "Speech-to-text transport error" immediately     | Bad base URL, expired token, or the origin is not in `CORS_ORIGIN`                           |
+| "Agent stream run failed" after a message        | The turn reached the service and its agent backend rejected it. Check the deployment's logs. |
+| Microphone button does nothing                   | Not on HTTPS or `localhost`, or permission was denied                                        |
+| Replies arrive as text but silently              | `unlockAudio` needs a user gesture — use the start button, not autostart                     |
+| Face never moves                                 | The GLB has no ARKit morph targets; check `el.avatar.availableShapes`                        |
+| Voice sounds wrong                               | The voice ID is not in your tenant's catalogue                                               |
 
 Open the browser console — the SDK's errors carry a `code` and say which stage
 failed.

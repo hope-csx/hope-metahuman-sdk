@@ -50,7 +50,9 @@ For a renderer you drive yourself, skip `poseSource` and call
 | `canvas`           | `HTMLCanvasElement`            | —        | Target canvas; resizes with its container       |
 | `modelUrl`         | `string`                       | —        | GLB with ARKit-compatible morph targets         |
 | `poseSource`       | `() => BlendshapePose \| null` | —        | Polled once per frame                           |
-| `framing`          | `'head' \| 'bust' \| 'full'`   | `'head'` | Camera position                                 |
+| `framing`          | `'head' \| 'bust' \| 'full'`   | `'head'` | How much of the model fills the view            |
+| `camera`           | `AvatarCameraOptions`          | —        | Override the automatic framing                  |
+| `lockRootRotation` | `boolean`                      | `true`   | Keep the avatar facing the camera               |
 | `background`       | `string \| null`               | `null`   | CSS colour, or `null` for transparent           |
 | `idleAnimation`    | `boolean`                      | `true`   | Autonomous blink, saccade, and gaze             |
 | `idleConfig`       | `Partial<IdleAnimationConfig>` | —        | Timing overrides                                |
@@ -64,6 +66,73 @@ WebGL context, geometries, textures, and the resize observer.
 
 Rendering pauses automatically when the canvas leaves the viewport or the tab is
 hidden, so a metahuman scrolled off-screen costs nothing.
+
+## Orientation and camera
+
+The avatar faces the viewer by default, and in most cases there is nothing to
+configure.
+
+That default takes a small amount of work, because the two halves of a GLB
+disagree. The rest pose faces down +Z, straight at the camera, but the idle body
+animation exporters bake in usually does not: the Avaturn idle clip that ships
+with these avatars yaws the whole skeleton about 32°, so an avatar that looked
+correct while loading swings away the moment the clip starts. The renderer drops
+that one track — the root bone's rotation — and keeps everything else, so the
+body still shifts its weight and moves its arms while the avatar keeps looking
+at the viewer.
+
+Set `lockRootRotation: false` when a clip is _supposed_ to turn the avatar, or
+when you would rather aim the camera than change the animation.
+
+### Overriding the camera
+
+By default the camera is placed automatically: `framing` decides how much of the
+model fills the view, and the renderer measures the model to work out where to
+stand. Pass `camera` to take over any part of that.
+
+```ts
+const avatar = new AvatarRenderer({
+  canvas,
+  modelUrl: '/models/your-avatar.glb',
+  camera: {
+    fov: 20,
+    position: [0, 1.62, 0.75],
+    target: [0, 1.6, 0],
+  },
+});
+```
+
+| Field      | Type                       | Default | Purpose                            |
+| ---------- | -------------------------- | ------- | ---------------------------------- |
+| `fov`      | `number`                   | `28`    | Vertical field of view, in degrees |
+| `near`     | `number`                   | `0.05`  | Near clip plane                    |
+| `far`      | `number`                   | `100`   | Far clip plane                     |
+| `position` | `[number, number, number]` | —       | Where the camera stands            |
+| `target`   | `[number, number, number]` | —       | What the camera looks at           |
+
+Fields are independent, so you can widen the lens and leave the placement alone.
+Supplying `position` replaces the computed position, which means `framing` no
+longer affects where the camera stands. Supplying only `target` keeps the
+automatic placement but measures the distance back from your look-at point —
+useful for nudging the shot up or down without recomputing the geometry.
+
+Coordinates are in the model's own world space. Avatars authored at human scale
+in metres with the feet at the origin — the usual convention, and what Avaturn,
+Ready Player Me, and Character Creator produce — put eye level at roughly
+`y = 1.6`, so `[0, 1.6, 0.8]` is arm's length in front of an adult's face.
+
+A lower `fov` is a longer lens: it flattens facial features and is generally
+kinder to a portrait. Widening much past the default starts to distort the nose.
+
+If your model was authored facing away from +Z, put the camera behind it rather
+than rotating the model, which would take its lighting and animation with it:
+
+```ts
+camera: { position: [0, 1.6, -0.8], target: [0, 1.6, 0] };
+```
+
+The camera is also reachable after construction as `avatar.camera`, for an
+application that wants to animate it.
 
 ## Avatar requirements
 
@@ -123,6 +192,9 @@ to make the timing deterministic in tests.
 
 ## Animation clips
 
+`AvatarRenderer` handles this for you. The helpers are exported for applications
+that drive their own `AnimationMixer`.
+
 If your GLB ships with animation clips that also write morph targets, those
 tracks fight the speech pose. `clipWithoutMorphTracks(clip)` strips them and
 keeps the bone animation:
@@ -132,6 +204,21 @@ import { clipWithoutMorphTracks } from '@hope-metahuman/avatar-three';
 
 mixer.clipAction(clipWithoutMorphTracks(gltf.animations[0])).play();
 ```
+
+Pass a root bone name as the second argument to also drop the clip's root
+rotation, which is what keeps the avatar facing the camera. `findRootBoneName`
+locates it:
+
+```ts
+import { clipWithoutMorphTracks, findRootBoneName } from '@hope-metahuman/avatar-three';
+
+const rootBone = findRootBoneName(gltf.scene);
+mixer.clipAction(clipWithoutMorphTracks(gltf.animations[0], rootBone)).play();
+```
+
+Only the root bone's `.quaternion` and `.rotation` tracks are removed. Root
+position and scale, and every child bone, are left alone, so the body still
+animates.
 
 ## Licence
 

@@ -46,6 +46,12 @@
 
     <main>
       <section class="stage-column" aria-label="Metahuman">
+        <!--
+          The avatar faces the viewer by default. To frame the shot yourself,
+          add camera-fov, camera-position, and camera-target — for example:
+            camera-fov="20" camera-position="0, 1.62, 0.75" camera-target="0, 1.6, 0"
+          See docs/embed-element.md.
+        -->
         <hope-metahuman
           id="metahuman"
           voice-model="sonic-3"
