@@ -38,6 +38,9 @@ Your endpoint authenticates the visitor and returns
 `{ "token": "…", "expiresIn": 600 }`. The provider caches the token and refetches
 it 30 seconds before it expires.
 
+A complete endpoint, in about forty lines of Express, is in
+[`examples/token-server`](../examples/token-server).
+
 ### On a server: `MachineTokenProvider`
 
 ```ts
@@ -50,10 +53,38 @@ const tokenProvider = new MachineTokenProvider({
 });
 ```
 
-**This class must never run in a browser.** It holds an API key secret, which
-does not expire. Shipping one to a page hands every visitor permanent access to
-your tenant. The constructor throws if it detects a browser, but treat that as a
-safety net rather than a boundary you can lean on.
+**Never ship an API key secret to a browser.** A secret does not expire, and
+everything a page receives is readable — view-source, devtools, the network
+tab, an environment variable inlined at build time, a minified bundle. One page
+view is enough for a visitor to keep using your tenant indefinitely, and you
+cannot revoke it without revoking the key for everyone.
+
+Nothing in the SDK enforces this. `MachineTokenProvider` runs anywhere `fetch`
+exists, including a browser, because the only mechanism that could stop it —
+sniffing for `window` — is trivially defeated and would also break legitimate
+runtimes like Electron's main process and Cloudflare Workers. Where the
+credential lives is your decision, and this is the one place the SDK cannot
+make it for you.
+
+### While you are still evaluating
+
+For a first look on `localhost`, exchanging the key straight from the page is a
+reasonable trade against standing up a backend before you know whether you want
+the SDK at all:
+
+```ts
+// localhost only. Do not deploy a page that does this.
+const tokenProvider = new MachineTokenProvider({
+  baseUrl: 'http://localhost:3001',
+  clientId: prompt('API key ID'),
+  clientSecret: prompt('API key secret'),
+});
+```
+
+Keep it out of source control and out of your HTML — take the values at
+runtime, as the [static example](../examples/static-chat)'s settings panel
+does, so a secret is never committed or persisted. Then move the exchange to a
+server before anyone else can load the page.
 
 ### Other options
 

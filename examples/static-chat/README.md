@@ -19,40 +19,36 @@ neither is reachable it says so on the page instead of failing silently.
 
 ## What you need
 
-|                |                                                        |
-| -------------- | ------------------------------------------------------ |
-| A deployment   | The origin of a HOPE Metahuman Service instance        |
-| The SDK bundle | Commercially licensed; from the CDN or `pnpm vendor`   |
-| A credential   | A token endpoint, or a machine token for local testing |
-| A voice ID     | From your tenant's catalogue                           |
-| A GLB avatar   | Optional; without one you get chat with no face        |
+|                |                                                      |
+| -------------- | ---------------------------------------------------- |
+| A deployment   | The origin of a HOPE Metahuman Service instance      |
+| The SDK bundle | Commercially licensed; from the CDN or `pnpm vendor` |
+| A credential   | A token endpoint, or an API key for local testing    |
+| A voice ID     | From your tenant's catalogue                         |
+| A GLB avatar   | Optional; without one you get chat with no face      |
 
 Settings entered in the panel are saved in `localStorage`, so you type them
 once. To preconfigure the page instead, edit [`config.js`](./config.js) — the
 panel overrides whatever is in there.
 
-The token is deliberately excluded from what gets persisted.
+The machine token and the API key secret are deliberately excluded from what
+gets persisted.
 
-### Getting a token for a local trial
+### Getting a credential
 
-The quickest option is to let `pnpm example` mint tokens for you. Give it API
-key credentials and it serves `/api/hope/stream-token` — the same shape a real
-backend would — so the page refreshes its own credential instead of expiring
-mid-conversation:
+There are three ways, and only the last one is for production.
 
-```bash
-HOPE_API_BASE=https://api.your-deployment.example \
-HOPE_CLIENT_ID=mhs_… \
-HOPE_CLIENT_SECRET=… \
-  pnpm example
-```
+**Paste an API key into the settings panel.** The fastest way to see the SDK
+work: fill in **API key ID** and **API key secret**, and the page performs the
+exchange itself, refreshing as tokens expire. The secret is held in memory and
+never written to storage, so you retype it after a reload.
 
-The endpoint only exists when all three variables are set, and the secret stays
-in the server process — the browser sees nothing but the ten-minute token. This
-is still a development convenience: it performs no authentication of its own, so
-anyone who can reach the port can mint a token. Do not run it anywhere public.
+This is for your own machine only. The secret does not expire — a deployed page
+carrying one hands every visitor permanent access to your tenant, and no amount
+of minification hides it. There is more on this below.
 
-Alternatively, mint one by hand and paste it into the settings panel:
+**Paste a machine token.** If you would rather not put a secret in a browser at
+all, mint one by hand:
 
 ```bash
 curl -X POST https://api.your-deployment.example/oauth/token \
@@ -60,8 +56,36 @@ curl -X POST https://api.your-deployment.example/oauth/token \
   -d '{"grant_type":"client_credentials","client_id":"…","client_secret":"…"}'
 ```
 
-It expires in ten minutes; refresh the page and paste a new one when the
+It expires in ten minutes and cannot refresh; paste a new one when the
 conversation stops working.
+
+**Run a token endpoint.** What you should ship.
+[`examples/token-server`](../token-server) is a complete one in about forty
+lines of Express, and it serves this page too, so the two share an origin:
+
+```bash
+cd ../token-server
+cp .env.example .env    # your deployment and API key
+npm install && npm start
+```
+
+`config.js` already points `tokenEndpoint` at `/api/hope/stream-token`, so that
+works with no further configuration. A credential typed into the settings panel
+takes precedence while it is there, which is what makes the quick trial above
+possible without editing anything.
+
+### Never ship a secret to a browser
+
+Whatever you do here, do not let an API key secret reach a page you deploy.
+It does not expire, and everything a browser receives is readable: view-source,
+devtools, the network tab, a bundled environment variable, a minified file.
+"Nobody will look" is not a control, and neither is an unlisted URL.
+
+The distinction the SDK draws is between a _secret_, which lives only on your
+server, and a _token_, which is derived from it, expires in ten minutes, and is
+therefore safe to hand out. The settings panel exists so you can skip that
+separation while you are evaluating the SDK on localhost. Put it back before
+anyone else can load the page.
 
 **Do not deploy a page with a pasted token, and never put the client secret in
 one.** For anything real, stand up a token endpoint — a dozen lines, shown in

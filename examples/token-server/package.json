@@ -1,0 +1,17 @@
+{
+  "name": "hope-metahuman-token-server-example",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Minimal Express token endpoint for the HOPE Metahuman Service SDK",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.12"
+  },
+  "scripts": {
+    "start": "node --env-file-if-exists=.env server.js"
+  },
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}

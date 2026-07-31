@@ -110,11 +110,18 @@ app.get('/api/hope/stream-token', requireSignedInUser, async (_req, res) => {
 ```
 
 Two properties make this safe: your own authentication runs first, and what the
-browser receives expires in ten minutes.
+browser receives expires in ten minutes. A complete, runnable version of this
+endpoint is in [`examples/token-server`](./examples/token-server).
 
 Do not proxy the WebSockets themselves. Let the browser connect to the service
 directly — relaying audio through your backend adds latency to a
 latency-sensitive path.
+
+Just evaluating? The [static example](./examples/static-chat) will exchange an
+API key from the browser if you type one into its settings panel, so you can
+skip this step entirely until you have seen the thing work. That is a
+`localhost` shortcut and nothing more — see
+[Security notes](#security-notes).
 
 ### 2. Drop in the element
 
@@ -196,16 +203,17 @@ server closes when the reply ends. Multi-turn memory comes from reusing a
 
 ## Documentation
 
-| Topic                                        | Where                                                              |
-| -------------------------------------------- | ------------------------------------------------------------------ |
-| Element attributes, events, and theming      | [docs/embed-element.md](./docs/embed-element.md)                   |
-| Protocol client API                          | [docs/javascript-api.md](./docs/javascript-api.md)                 |
-| Avatar rendering and the renderer API        | [docs/three-renderer.md](./docs/three-renderer.md)                 |
-| Avatar model requirements                    | [docs/avatars.md](./docs/avatars.md)                               |
-| Obtaining, pinning, and self-hosting the SDK | [docs/self-hosting.md](./docs/self-hosting.md)                     |
-| Commercial licence terms                     | [docs/commercial-license.md](./docs/commercial-license.md)         |
-| Running the static example                   | [examples/static-chat/README.md](./examples/static-chat/README.md) |
-| Service protocol reference                   | Your deployment's docs site                                        |
+| Topic                                        | Where                                                                |
+| -------------------------------------------- | -------------------------------------------------------------------- |
+| Element attributes, events, and theming      | [docs/embed-element.md](./docs/embed-element.md)                     |
+| Protocol client API                          | [docs/javascript-api.md](./docs/javascript-api.md)                   |
+| Avatar rendering and the renderer API        | [docs/three-renderer.md](./docs/three-renderer.md)                   |
+| Avatar model requirements                    | [docs/avatars.md](./docs/avatars.md)                                 |
+| Obtaining, pinning, and self-hosting the SDK | [docs/self-hosting.md](./docs/self-hosting.md)                       |
+| Commercial licence terms                     | [docs/commercial-license.md](./docs/commercial-license.md)           |
+| Running the static example                   | [examples/static-chat/README.md](./examples/static-chat/README.md)   |
+| A token endpoint you can copy                | [examples/token-server/README.md](./examples/token-server/README.md) |
+| Service protocol reference                   | Your deployment's docs site                                          |
 
 The published packages ship TypeScript declarations with full JSDoc, so editor
 hover documentation is the fastest reference for anything not covered above —
@@ -217,8 +225,16 @@ documented.
 This SDK is used in front of systems on a FedRAMP Moderate authorization path.
 A few consequences are worth stating plainly:
 
-- **Never ship an API key secret to a browser.** Use `TokenEndpointProvider` or
-  your own `TokenProvider`. `MachineTokenProvider` is server-side only.
+- **Never ship an API key secret to a browser.** Not in HTML, not in a script
+  tag, not in an environment variable your bundler inlines. A secret does not
+  expire, so one page view lets a visitor use your tenant indefinitely, and
+  revoking it means revoking the key for everyone. Use `TokenEndpointProvider`
+  or your own `TokenProvider`; keep `MachineTokenProvider` on a server. Nothing
+  in the SDK enforces this — it runs wherever `fetch` does, because a
+  `window` check would be both trivially defeated and wrong for Electron and
+  edge runtimes. On `localhost`, exchanging a key from the page is a fair trade
+  for getting started quickly; take the values at runtime so nothing is
+  committed, and move the exchange to a server before you deploy.
 - **Tokens are held in memory, never in `localStorage` or `sessionStorage`.**
   The SDK never writes a credential to storage, and neither should you.
 - **Query-string tokens are a browser-only concession.** The `WebSocket`
@@ -252,14 +268,14 @@ pnpm example       # serve the static example on :4173
 The example runs without `pnpm vendor` too: it falls back to the CDN, and if
 neither is reachable it says so on the page rather than failing silently.
 
-| Script                              | What it does                                                                                                                                   |
-| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm vendor`                       | Downloads the SDK bundle into the example and verifies its SRI hash                                                                            |
-| `pnpm example`                      | Serves the static example on `:4173`, and mints machine tokens for it when `HOPE_API_BASE`, `HOPE_CLIENT_ID`, and `HOPE_CLIENT_SECRET` are set |
-| `pnpm smoke`                        | Drives the example in a real browser                                                                                                           |
-| `pnpm lint`                         | Lints the examples and scripts                                                                                                                 |
-| `pnpm format` / `pnpm format:check` | Prettier                                                                                                                                       |
-| `pnpm clean`                        | Removes the vendored bundle                                                                                                                    |
+| Script                              | What it does                                                        |
+| ----------------------------------- | ------------------------------------------------------------------- |
+| `pnpm vendor`                       | Downloads the SDK bundle into the example and verifies its SRI hash |
+| `pnpm example`                      | Serves the static example on `:4173`                                |
+| `pnpm smoke`                        | Drives the example in a real browser                                |
+| `pnpm lint`                         | Lints the examples and scripts                                      |
+| `pnpm format` / `pnpm format:check` | Prettier                                                            |
+| `pnpm clean`                        | Removes the vendored bundle                                         |
 
 See [CONTRIBUTING.md](./CONTRIBUTING.md) for conventions.
 

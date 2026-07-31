@@ -102,6 +102,25 @@
                   minutes and cannot refresh. Never paste an API key <em>secret</em> here.
                 </small>
               </label>
+
+              <div class="row">
+                <label>
+                  <span>API key ID</span>
+                  <input name="clientId" type="text" autocomplete="off" placeholder="mhs_…" />
+                </label>
+                <label>
+                  <span>API key secret</span>
+                  <input name="clientSecret" type="password" autocomplete="off" />
+                </label>
+              </div>
+              <small class="warn">
+                <strong>Local development only.</strong> This exchanges the key in the browser so
+                you can try the SDK without writing a backend first, and it refreshes itself as
+                tokens expire. The secret is typed here at runtime and never persisted — but a
+                secret does not expire, so a page that carries one hands every visitor permanent
+                access to your tenant. Before you deploy anything, move the exchange to a server:
+                see <code>examples/token-server</code>.
+              </small>
             </fieldset>
 
             <label>

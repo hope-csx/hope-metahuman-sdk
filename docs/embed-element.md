@@ -60,10 +60,30 @@ A complete working page is in
 | `voice-id`       | yes      | Voice from your tenant's catalogue                       |
 | `voice-model`    | —        | Synthesis model. Defaults to `sonic-3`                   |
 
-Supply exactly one credential source. **Never put an API key secret in `token`**
-— it does not expire and the attribute is readable by anyone who views the page.
-For anything beyond a local experiment, use `token-endpoint`, or set the
-`tokenProvider` property from script.
+Supply exactly one credential source. `token-endpoint` is the right answer for
+anything you deploy; see [`examples/token-server`](../examples/token-server) for
+one you can copy.
+
+**Never put an API key secret in HTML** — not in `token`, not in any other
+attribute, not in a script tag on the page. A secret does not expire, and
+markup is readable by everyone who loads the document. There is deliberately no
+attribute that accepts one.
+
+For a local trial without a backend, set the `tokenProvider` property from
+script with values entered at runtime, so the secret is neither committed nor
+persisted:
+
+```js
+// localhost only.
+document.querySelector('hope-metahuman').tokenProvider = new MachineTokenProvider({
+  baseUrl: 'http://localhost:3001',
+  clientId: idFromAForm,
+  clientSecret: secretFromAForm,
+});
+```
+
+The [static example](../examples/static-chat) does exactly this, behind its
+settings panel.
 
 ### Conversation
 
