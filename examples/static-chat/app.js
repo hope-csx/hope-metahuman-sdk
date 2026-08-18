@@ -23,7 +23,11 @@ const DEFAULTS = {
   baseUrl: '',
   tokenEndpoint: '',
   clientId: '',
+  avatarKind: 'standard',
+  metahumanId: '',
   modelUrl: '',
+  posterUrl: '',
+  previewVideoUrl: '',
   voiceId: '',
   voiceModel: 'sonic-3',
   metahumanName: '',
@@ -210,7 +214,11 @@ async function applySettings(settings) {
   if (isElementReady()) await element.stop();
 
   setAttribute('base-url', settings.baseUrl);
-  setAttribute('model-url', settings.modelUrl);
+  setAttribute('metahuman-id', settings.metahumanId);
+  setAttribute('model-url', settings.avatarKind === 'standard' ? settings.modelUrl : '');
+  setAttribute('poster-url', settings.posterUrl);
+  setAttribute('preview-video-url', settings.previewVideoUrl);
+  setAttribute('live-avatar', settings.avatarKind === 'standard' ? 'off' : '');
   setAttribute('voice-id', settings.voiceId);
   setAttribute('voice-model', settings.voiceModel);
   setAttribute('metahuman-name', settings.metahumanName);
@@ -273,6 +281,9 @@ element.addEventListener('hope-ready', (event) => {
 });
 element.addEventListener('hope-state', (event) => {
   log('state', event.detail.state);
+});
+element.addEventListener('hope-avatar-state', (event) => {
+  log('avatar', event.detail.state);
 });
 element.addEventListener('hope-user-message', (event) => {
   log('user', event.detail.text);

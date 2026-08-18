@@ -44,7 +44,7 @@ microphone permission, transcription, the agent turn, audio playback, and lip
 sync.
 
 A complete working page is in
-[`examples/static-chat`](../../examples/static-chat).
+[`examples/static-chat`](../examples/static-chat).
 
 ---
 
@@ -59,6 +59,7 @@ A complete working page is in
 | `token`          | —        | A machine token you already have. Expires in ten minutes |
 | `voice-id`       | yes      | Voice from your tenant's catalogue                       |
 | `voice-model`    | —        | Synthesis model. Defaults to `sonic-3`                   |
+| `auth-mode`      | —        | `cookie` only for a same-site signed-in application      |
 
 Supply exactly one credential source. `token-endpoint` is the right answer for
 anything you deploy; see [`examples/token-server`](../examples/token-server) for
@@ -90,6 +91,7 @@ settings panel.
 | Attribute        | Default   | Description                                        |
 | ---------------- | --------- | -------------------------------------------------- |
 | `session-id`     | generated | Persist to resume a conversation across page loads |
+| `metahuman-id`   | —         | Resolve workflow and persona server-side           |
 | `metahuman-name` | —         | The persona's own name                             |
 | `user-name`      | —         | Name of the person speaking                        |
 | `language`       | `en-US`   | BCP-47 tag for transcription and replies           |
@@ -113,9 +115,16 @@ settings panel.
 | `placeholder`        | `Say something…`     | Text input placeholder                                                     |
 | `start-label`        | `Start conversation` | Start button text                                                          |
 | `start-hint`         |                      | Text under the start button                                                |
+| `poster-url`         | —                    | Still shown while Premium video starts or falls back                       |
+| `preview-video-url`  | —                    | Muted visual fallback when live rendering is unavailable                   |
+| `live-avatar`        | on                   | `off` disables the Premium session attempt                                 |
 
 Omitting `model-url` also turns off animation generation server-side, which
 saves the tenant the cost of rendering blendshapes nothing will display.
+
+When `metahuman-id` is present, the service resolves its trusted workflow,
+persona, language, and voice for every turn. This is the recommended contract
+for tenant-managed Metahumans.
 
 ### Orientation and camera
 
@@ -155,6 +164,29 @@ document.querySelector('hope-metahuman').cameraOptions = {
 See [three-renderer.md](./three-renderer.md) for the full explanation of why the
 root rotation is dropped.
 
+## Premium Avatars
+
+Give the element a `model-url` for a Standard 3D Metahuman. Give it a
+`metahuman-id` with no `model-url` for a Premium Avatar: it starts a live
+service renderer, subscribes to its video/audio room, and routes each reply to
+the avatar's own lip-synced audio track.
+
+```html
+<hope-metahuman
+  base-url="https://api.hope-metahuman.example"
+  token-endpoint="/api/hope/stream-token"
+  metahuman-id="3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40"
+  voice-id="a1b2c3d4"
+  poster-url="/images/dana.jpg"
+></hope-metahuman>
+```
+
+The npm path also needs `livekit-client`; the standalone bundle already carries
+it. While the renderer starts, the element shows `poster-url`. A Standard
+Metahuman, a deployment without live rendering, or a failed renderer degrades
+to `preview-video-url`/`poster-url` with locally played speech instead of ending
+the conversation. See [premium-avatars.md](./premium-avatars.md).
+
 ## The start gate
 
 Nothing connects until the visitor presses **Start conversation**. This is not a
@@ -179,7 +211,7 @@ document.querySelector('#my-button').addEventListener('click', () => {
 const el = document.querySelector('hope-metahuman');
 
 el.tokenProvider = myProvider; // takes precedence over the attributes
-el.scenarioFields = [{ name: 'unit', value: 'Ranger Battalion' }];
+el.scenarioFields = [{ field_name: 'unit', stated_value: 'Ranger Battalion', is_deceptive: false }];
 
 await el.start(); // must be inside a user gesture
 await el.send('Hello'); // resolves when the reply finishes
@@ -190,6 +222,7 @@ await el.stop(); // tear down, back to the start gate
 
 el.session; // the underlying MetahumanSession, or null before start()
 el.avatar; // the underlying AvatarRenderer, or null with no model-url
+el.liveAvatar; // the live Premium renderer, or null on the Standard path
 ```
 
 `session` and `avatar` are escape hatches: anything the element does not expose
@@ -199,13 +232,14 @@ as an attribute can be reached through them.
 
 All events bubble, cross shadow boundaries, and carry their payload in `detail`.
 
-| Event               | `detail`                                                       |
-| ------------------- | -------------------------------------------------------------- |
-| `hope-ready`        | `{ sessionId }`                                                |
-| `hope-state`        | `{ state: 'idle' \| 'listening' \| 'thinking' \| 'speaking' }` |
-| `hope-user-message` | `{ text }`                                                     |
-| `hope-reply`        | `{ text }`                                                     |
-| `hope-error`        | `{ error }`                                                    |
+| Event               | `detail`                                                                                            |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| `hope-ready`        | `{ sessionId }`                                                                                     |
+| `hope-state`        | `{ state: 'idle' \| 'listening' \| 'thinking' \| 'speaking' }`                                      |
+| `hope-avatar-state` | `{ state: 'idle' \| 'connecting' \| 'waiting' \| 'live' \| 'reconnecting' \| 'ended' \| 'failed' }` |
+| `hope-user-message` | `{ text }`                                                                                          |
+| `hope-reply`        | `{ text }`                                                                                          |
+| `hope-error`        | `{ error }`                                                                                         |
 
 ```js
 el.addEventListener('hope-reply', (event) => {
@@ -266,8 +300,8 @@ connect-src 'self' https://api.hope-metahuman.example wss://api.hope-metahuman.e
 Add `script-src blob:` for browsers that do not implement `worker-src`. The
 element sets no inline styles that would require `unsafe-inline` beyond its own
 shadow stylesheet, and it never uses `unsafe-eval`. If `blob:` is not
-permissible in your environment, host the worklet yourself — see the
-[core package README](../core/README.md#the-audioworklet-and-csp) — and drive
+permissible in your environment, host the worklet yourself — see
+[javascript-api.md](./javascript-api.md#the-audioworklet-and-csp) — and drive
 the session directly rather than through this element.
 
 ## Browser support

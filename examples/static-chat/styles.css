@@ -211,7 +211,8 @@ label small.warn {
   gap: 12px;
 }
 
-input {
+input,
+select {
   width: 100%;
   height: 38px;
   padding: 0 12px;
@@ -228,6 +229,7 @@ input::placeholder {
 }
 
 input:focus-visible,
+select:focus-visible,
 button:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;

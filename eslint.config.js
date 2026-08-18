@@ -3,14 +3,16 @@ import globals from 'globals';
 
 export default [
   {
-    ignores: ['**/node_modules/**', 'examples/static-chat/vendor/**'],
+    ignores: [
+      '**/node_modules/**',
+      'examples/static-chat/vendor/**',
+      'examples/react-native/**/*.{ts,tsx}',
+    ],
   },
   js.configs.recommended,
   {
-    // Everything in this repository is plain JavaScript that runs either in a
-    // browser without a build step or in Node as a script. There is no
-    // TypeScript here: the SDK itself lives in the private monorepo and reaches
-    // this repository only as a compiled bundle.
+    // Repository tooling and the static example are plain JavaScript. The
+    // React Native example is TypeScript and is checked by its Expo project.
     files: ['**/*.{js,mjs}'],
     languageOptions: {
       ecmaVersion: 2023,

@@ -264,6 +264,9 @@ try {
 
   await page.fill('#settings-form [name="baseUrl"]', 'https://api.invalid.example');
   await page.fill('#settings-form [name="voiceId"]', 'voice-demo');
+  await page.selectOption('#settings-form [name="avatarKind"]', 'premium');
+  await page.fill('#settings-form [name="metahumanId"]', '3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40');
+  await page.fill('#settings-form [name="posterUrl"]', 'https://assets.invalid.example/dana.jpg');
   await page.click('#settings-form button[type="submit"]');
   await page.waitForTimeout(200);
 
@@ -272,6 +275,10 @@ try {
     return {
       baseUrl: node?.getAttribute('base-url'),
       voiceId: node?.getAttribute('voice-id'),
+      metahumanId: node?.getAttribute('metahuman-id'),
+      modelUrl: node?.getAttribute('model-url'),
+      posterUrl: node?.getAttribute('poster-url'),
+      liveAvatar: node?.getAttribute('live-avatar'),
       stored: Object.keys(localStorage).length > 0,
     };
   });
@@ -279,6 +286,13 @@ try {
   console.log('\nConfiguration');
   check('the base URL reached the element', configured.baseUrl === 'https://api.invalid.example');
   check('the voice ID reached the element', configured.voiceId === 'voice-demo');
+  check(
+    'Premium mode reached the element',
+    configured.metahumanId === '3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40' &&
+      configured.modelUrl === null &&
+      configured.posterUrl === 'https://assets.invalid.example/dana.jpg' &&
+      configured.liveAvatar === null,
+  );
   check('settings were persisted', configured.stored);
 
   if (bundlePath) {

@@ -6,7 +6,7 @@
     <title>HOPE Metahuman Service — Static embed example</title>
     <meta
       name="description"
-      content="A plain static web page that embeds a 3D metahuman you can talk to, using the HOPE Metahuman Service SDK."
+      content="A plain static page for talking to Standard 3D and Premium live-video Metahumans with the HOPE Metahuman Service SDK."
     />
     <link rel="stylesheet" href="./styles.css" />
     <link
@@ -124,12 +124,38 @@
             </fieldset>
 
             <label>
-              <span>Avatar model URL</span>
-              <input name="modelUrl" type="text" placeholder="/models/your-avatar.glb" />
+              <span>Avatar kind</span>
+              <select name="avatarKind">
+                <option value="standard">Standard 3D (local GLB)</option>
+                <option value="premium">Premium (live video)</option>
+              </select>
+              <small>Standard renders on this device; Premium streams a rendered avatar.</small>
+            </label>
+
+            <label>
+              <span>Metahuman ID</span>
+              <input name="metahumanId" type="text" placeholder="3f9a2b71-…" />
               <small
-                >A GLB with ARKit-compatible morph targets. Chat still works without one.</small
+                >Required for Premium and recommended for tenant-managed Standard personas.</small
               >
             </label>
+
+            <label>
+              <span>Standard avatar model URL</span>
+              <input name="modelUrl" type="text" placeholder="/models/your-avatar.glb" />
+              <small>A GLB with ARKit-compatible morph targets. Used only for Standard.</small>
+            </label>
+
+            <div class="row">
+              <label>
+                <span>Premium poster URL</span>
+                <input name="posterUrl" type="text" placeholder="/images/avatar.jpg" />
+              </label>
+              <label>
+                <span>Premium fallback video URL</span>
+                <input name="previewVideoUrl" type="text" placeholder="/video/avatar.mp4" />
+              </label>
+            </div>
 
             <div class="row">
               <label>

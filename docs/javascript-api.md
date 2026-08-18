@@ -53,38 +53,11 @@ const tokenProvider = new MachineTokenProvider({
 });
 ```
 
-**Never ship an API key secret to a browser.** A secret does not expire, and
-everything a page receives is readable — view-source, devtools, the network
-tab, an environment variable inlined at build time, a minified bundle. One page
-view is enough for a visitor to keep using your tenant indefinitely, and you
-cannot revoke it without revoking the key for everyone.
-
-Nothing in the SDK enforces this. `MachineTokenProvider` runs anywhere `fetch`
-exists, including a browser, because the only mechanism that could stop it —
-sniffing for `window` — is trivially defeated and would also break legitimate
-runtimes like Electron's main process and Cloudflare Workers. Where the
-credential lives is your decision, and this is the one place the SDK cannot
-make it for you.
-
-### While you are still evaluating
-
-For a first look on `localhost`, exchanging the key straight from the page is a
-reasonable trade against standing up a backend before you know whether you want
-the SDK at all:
-
-```ts
-// localhost only. Do not deploy a page that does this.
-const tokenProvider = new MachineTokenProvider({
-  baseUrl: 'http://localhost:3001',
-  clientId: prompt('API key ID'),
-  clientSecret: prompt('API key secret'),
-});
-```
-
-Keep it out of source control and out of your HTML — take the values at
-runtime, as the [static example](../examples/static-chat)'s settings panel
-does, so a secret is never committed or persisted. Then move the exchange to a
-server before anyone else can load the page.
+**This class must never run in a browser or mobile UI process.** It holds an API
+key secret, which does not expire. The SDK deliberately cannot treat runtime
+detection as a security boundary because legitimate server runtimes can expose
+browser-like globals. Use your own backend and hand the client only the
+short-lived machine token.
 
 ### Other options
 
@@ -112,6 +85,7 @@ const session = new MetahumanSession({
   baseUrl: 'https://api.hope-metahuman.example',
   tokenProvider: new TokenEndpointProvider({ url: '/api/hope/stream-token' }),
   voice: { id: 'a1b2c3d4', model: 'sonic-3' },
+  metahumanId: '3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40',
   metahumanName: 'Dana',
   language: 'en-US',
 });
@@ -135,16 +109,17 @@ starts the conversation; without it, the first reply plays to nobody.
 
 ### Events
 
-| Event         | Payload                                             | Notes                                                        |
-| ------------- | --------------------------------------------------- | ------------------------------------------------------------ |
-| `state`       | `'idle' \| 'listening' \| 'thinking' \| 'speaking'` | Drive your status indicator from this                        |
-| `userInterim` | `string`                                            | Revisable transcript. Render it; do not act on it            |
-| `userMessage` | `string`                                            | A committed utterance, already sent to the agent             |
-| `replyToken`  | `string`                                            | A fragment of the reply; concatenate for a typewriter effect |
-| `reply`       | `string`                                            | The complete reply, once the turn finishes                   |
-| `micLevel`    | `number`                                            | Amplitude in `[0, 1]`, for a level meter                     |
-| `agentEvent`  | `{ event, data }`                                   | Non-fatal signals such as `a2f3d_error`                      |
-| `error`       | `Error`                                             | The session stays usable unless `state` says otherwise       |
+| Event            | Payload                                             | Notes                                                        |
+| ---------------- | --------------------------------------------------- | ------------------------------------------------------------ |
+| `state`          | `'idle' \| 'listening' \| 'thinking' \| 'speaking'` | Drive your status indicator from this                        |
+| `userInterim`    | `string`                                            | Revisable transcript. Render it; do not act on it            |
+| `userMessage`    | `string`                                            | A committed utterance, already sent to the agent             |
+| `replyToken`     | `string`                                            | A fragment of the reply; concatenate for a typewriter effect |
+| `reply`          | `string`                                            | The complete reply, once the turn finishes                   |
+| `micLevel`       | `number`                                            | Amplitude in `[0, 1]`, for a level meter                     |
+| `agentEvent`     | `{ event, data }`                                   | Non-fatal signals such as `a2f3d_error`                      |
+| `audioTransport` | `'binary' \| 'live-avatar'`                         | Whether speech is local PCM or the Premium Avatar track      |
+| `error`          | `Error`                                             | The session stays usable unless `state` says otherwise       |
 
 `on()` returns an unsubscribe function:
 
@@ -170,7 +145,7 @@ Call it once per frame from your own render loop. It interpolates between
 buffered frames using the audio clock, so the face stays in step with the sound
 even when frames arrive in bursts. Rendering is deliberately not part of the
 session, which is why this package has no 3D dependency —
-[`@hope-metahuman/avatar-three`](../avatar-three) wires it to Three.js in about
+[`@hope-metahuman/avatar-three`](./three-renderer.md) wires it to Three.js in about
 twenty lines.
 
 ### Multi-turn memory
@@ -216,14 +191,16 @@ text, audio, and blendshapes, then the server closes.
 
 ```ts
 const client = new AgentStreamClient({ baseUrl, tokenProvider });
-const run = client.run({
-  input: { user_query: 'Tell me about the mission.', session_id: sessionId },
+const run = await client.run({
+  userQuery: 'Tell me about the mission.',
+  sessionId,
+  metahumanId,
   voice: { id: 'a1b2c3d4', model: 'sonic-3' },
   features: { tts: true, a2f3d: true },
 });
 
 run.on('meta', (meta) => console.log(meta.audio)); // format for this run
-run.on('llm', (fragment) => process.stdout.write(fragment));
+run.on('token', (fragment) => process.stdout.write(fragment));
 run.on('audio', (chunk) => player.enqueue(chunk));
 run.on('blendshapes', (frames) => buffer.append(frames));
 
@@ -237,6 +214,53 @@ arrives, but it is a last resort, not a default.
 
 `buildRunEnvelope()` validates and constructs the envelope on its own, if you
 want to check inputs before opening a socket.
+
+Client tool handlers opt a run into protocol v2. Names must match active
+`CLIENT` tool bindings configured for the Metahuman. The server validates the
+arguments before invoking the handler; return a JSON-serializable value or
+throw an error with a user-safe message:
+
+```ts
+const run = await client.run({
+  userQuery: 'Open the settings screen.',
+  sessionId,
+  metahumanId,
+  voice,
+  tools: {
+    open_settings: async ({ section }) => {
+      navigation.navigate('Settings', { section });
+      return { opened: true };
+    },
+  },
+});
+
+run.on('tool', ({ name, ok }) => console.log(name, ok));
+```
+
+## Premium Avatar sessions
+
+`LiveAvatarSessionClient` starts and ends the service-side renderer used by a
+Premium Avatar. Its token provider needs the `agent.stream` scope.
+
+```ts
+import { LiveAvatarSessionClient } from '@hope-metahuman/sdk';
+
+const liveAvatars = new LiveAvatarSessionClient({ baseUrl, tokenProvider });
+const live = await liveAvatars.start(metahumanId);
+
+// Connect live.url/live.token with @hope-metahuman/avatar-live first.
+session.liveAvatarSessionId = live.id;
+
+// On teardown: release billable renderer capacity promptly.
+await liveAvatars.end(live.id);
+```
+
+The returned object contains `id`, `metahumanId`, `url`, `token`, `roomName`,
+`avatarIdentity`, and `expiresAt`. The room token is subscribe-only but remains
+a credential: keep it in memory and do not log it. `409` means the selected
+Metahuman is Standard; `503` means live rendering is unavailable. Both should
+fall back to a poster with local audio. See
+[`premium-avatars.md`](./premium-avatars.md) for the full lifecycle.
 
 ## Audio
 
@@ -273,6 +297,7 @@ no matching on message text.
 | ----------------------- | ------------------------------------------------------------------------------ | --------------------- |
 | `ConfigurationError`    | Invalid options — a malformed URL, an oversized field. Thrown before any I/O   |                       |
 | `AuthenticationError`   | Token acquisition or the upgrade was rejected                                  | `status`, `retryable` |
+| `ServiceRequestError`   | A REST request such as live-session start/end failed                           | `status`, `retryable` |
 | `ConnectionClosedError` | The socket closed before the operation finished                                | `closeCode`           |
 | `StreamError`           | The server reported a failure mid-stream                                       | `code`                |
 | `ProtocolError`         | A frame did not match the contract — usually an SDK too old for the deployment |                       |

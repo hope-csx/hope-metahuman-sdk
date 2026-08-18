@@ -1,7 +1,8 @@
 # Static chat example
 
-A complete talking 3D metahuman on a plain HTML page. No build step, no bundler,
-no server-side code — five files you can copy onto any static host.
+A complete Standard 3D or Premium live-video Metahuman on a plain HTML page. No
+build step, no bundler, no server-side code — five files you can copy onto any
+static host.
 
 ```bash
 pnpm install
@@ -25,7 +26,7 @@ neither is reachable it says so on the page instead of failing silently.
 | The SDK bundle | Commercially licensed; from the CDN or `pnpm vendor` |
 | A credential   | A token endpoint, or an API key for local testing    |
 | A voice ID     | From your tenant's catalogue                         |
-| A GLB avatar   | Optional; without one you get chat with no face      |
+| An appearance  | Standard ARKit GLB, or a Premium Metahuman ID        |
 
 Settings entered in the panel are saved in `localStorage`, so you type them
 once. To preconfigure the page instead, edit [`config.js`](./config.js) — the
@@ -99,8 +100,15 @@ No models ship with this repository. Bring your own ARKit-compatible GLB, or use
 a platform-hosted model if your deployment is entitled to one — see
 [docs/avatars.md](../../docs/avatars.md).
 
-Leave the field empty to run chat-only; the page says so on the stage rather
-than showing an empty box.
+Choose **Standard 3D** and provide the model URL to render the GLB locally. A
+tenant Metahuman ID is recommended so its workflow and persona are resolved by
+the service.
+
+Choose **Premium** and provide a tenant Metahuman ID configured with a Premium
+Avatar. Leave the model URL alone—it is ignored on this path. The service starts
+a live renderer and streams its video/audio; poster and preview URLs provide a
+visual fallback. The event log shows `connecting`, `waiting`, `live`, and any
+fallback state. See [`docs/premium-avatars.md`](../../docs/premium-avatars.md).
 
 ## Files
 
@@ -152,10 +160,12 @@ short:
 ```js
 // Configuration is just attributes.
 el.setAttribute('base-url', settings.baseUrl);
+el.setAttribute('metahuman-id', settings.metahumanId);
 el.setAttribute('voice-id', settings.voiceId);
 
 // Events are ordinary DOM events.
 el.addEventListener('hope-reply', (event) => log('reply', event.detail.text));
+el.addEventListener('hope-avatar-state', (event) => log('avatar', event.detail.state));
 el.addEventListener('hope-error', (event) => log('error', event.detail.error.message));
 ```
 

@@ -24,6 +24,12 @@ export default {
    */
   tokenEndpoint: '/api/hope/stream-token',
 
+  /** `standard` loads a GLB; `premium` requests live video from the service. */
+  avatarKind: 'standard',
+
+  /** Tenant Metahuman ID. Required for Premium; recommended for Standard. */
+  metahumanId: '',
+
   /**
    * GLB avatar with ARKit-compatible morph targets.
    *
@@ -35,6 +41,10 @@ export default {
    * Leave it empty to run chat-only, with no face.
    */
   modelUrl: 'http://localhost:3001/public/models/avatar.glb',
+
+  /** Still and muted preview used while Premium live rendering starts or falls back. */
+  posterUrl: '',
+  previewVideoUrl: '',
 
   /** Voice from your tenant's catalogue. */
   voiceId: 'f014dce5-df0e-4cfa-98e1-bd4bb73bb0b1',

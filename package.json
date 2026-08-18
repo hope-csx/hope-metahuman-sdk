@@ -13,10 +13,11 @@
   "scripts": {
     "clean": "rm -rf examples/static-chat/vendor",
     "example": "node scripts/serve-example.mjs",
-    "format": "prettier --write \"**/*.{js,mjs,json,md,html,css}\"",
-    "format:check": "prettier --check \"**/*.{js,mjs,json,md,html,css}\"",
+    "format": "prettier --write \"**/*.{js,mjs,ts,tsx,json,md,html,css}\"",
+    "format:check": "prettier --check \"**/*.{js,mjs,ts,tsx,json,md,html,css}\"",
     "lint": "eslint .",
     "smoke": "node scripts/smoke-example.mjs",
+    "typecheck:react-native": "npm --prefix examples/react-native run typecheck",
     "vendor": "node scripts/vendor-sdk.mjs"
   },
   "devDependencies": {

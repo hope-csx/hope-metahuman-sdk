@@ -1,0 +1,29 @@
+{
+  "expo": {
+    "name": "HOPE Metahuman",
+    "slug": "hope-metahuman-react-native",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "hope-metahuman",
+    "userInterfaceStyle": "automatic",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-build-properties",
+        {
+          "android": { "minSdkVersion": 24 },
+          "ios": { "deploymentTarget": "15.1" }
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Talk to your HOPE Metahuman."
+      }
+    },
+    "android": {
+      "permissions": ["android.permission.RECORD_AUDIO"]
+    }
+  }
+}

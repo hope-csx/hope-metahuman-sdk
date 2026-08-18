@@ -94,7 +94,8 @@ served by the packages than by the standalone script, because your application
 supplies its own copy of three.js instead of loading a second one:
 
 ```bash
-npm install @hope-metahuman/sdk @hope-metahuman/avatar-three @hope-metahuman/embed
+npm install @hope-metahuman/sdk @hope-metahuman/avatar-three \
+  @hope-metahuman/avatar-live @hope-metahuman/embed three livekit-client
 ```
 
 The packages are published to GitHub Packages with restricted access, so
@@ -108,8 +109,9 @@ authenticate first. In `.npmrc`:
 `HOPE_SDK_TOKEN` is issued with your licence. Keep it out of source control and
 out of any client bundle — it grants package downloads, not service access.
 
-`three` is a peer dependency of `@hope-metahuman/avatar-three` and
-`@hope-metahuman/embed`; install it yourself and you will have exactly one copy.
+`three` is the Standard renderer's peer dependency. `livekit-client` is the
+Premium renderer's peer dependency. Install them yourself so the application
+has one copy of each runtime.
 
 ## Content-Security-Policy
 
@@ -118,7 +120,7 @@ Self-hosted, everything is same-origin apart from the service connection:
 ```
 default-src 'self';
 script-src 'self';
-connect-src 'self' https://api.your-deployment.example wss://api.your-deployment.example;
+connect-src 'self' https://api.your-deployment.example wss://api.your-deployment.example wss://media.your-deployment.example;
 img-src 'self' data:;
 media-src 'self' blob:;
 worker-src 'self' blob:;
@@ -135,6 +137,11 @@ script-src 'self' https://cdn.hope-lms.app;
 worklet file would be a second artifact to host and to keep in step.
 
 The bundle needs neither `unsafe-inline` nor `unsafe-eval`.
+
+Premium Avatars also need the WebSocket media origin returned by
+`POST /live-avatar-sessions` in `connect-src`, plus `media-src blob:`. Ask the
+deployment operator for its stable media origin rather than allowing all
+`wss:` destinations.
 
 ## Verifying what you received
 

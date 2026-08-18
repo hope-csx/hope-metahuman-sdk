@@ -1,9 +1,8 @@
 # HOPE Metahuman SDK — examples and documentation
 
-Everything you need to put a talking 3D metahuman on a web page: worked
-examples, integration guides, and the full API reference for the **HOPE
-Metahuman Service** SDK — real-time avatar animation, speech-to-text, speech
-synthesis, and a conversational agent.
+Everything you need to put a talking Standard 3D or Premium live-video
+Metahuman in a web or React Native application: worked examples, integration
+guides, and the API reference for the **HOPE Metahuman Service** SDK.
 
 [![License: MIT](https://img.shields.io/badge/Repository-MIT-blue.svg)](./LICENSE)
 [![SDK: Commercial](https://img.shields.io/badge/SDK%20bundles-Commercial-orange.svg)](./NOTICE.md)
@@ -17,6 +16,7 @@ synthesis, and a conversational agent.
 <hope-metahuman
   base-url="https://api.hope-metahuman.example"
   token-endpoint="/api/hope/stream-token"
+  metahuman-id="3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40"
   model-url="/models/your-avatar.glb"
   voice-id="a1b2c3d4"
   voice-model="sonic-3"
@@ -53,24 +53,27 @@ see [docs/avatars.md](./docs/avatars.md).
 
 ## The packages
 
-| Package                              | What it is                                                                                           | Size                 |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------- | -------------------- |
-| `@hope-metahuman/sdk`                | The protocol client. Auth, WebSocket streaming, audio, animation buffering. No runtime dependencies. | ~14 KB min           |
-| `@hope-metahuman/avatar-three`       | Three.js renderer. Loads a GLB, drives its morph targets, animates blink and gaze.                   | ~6 KB min + `three`  |
-| `@hope-metahuman/embed`              | The `<hope-metahuman>` custom element. Everything above, in one tag.                                 | ~42 KB min + `three` |
-| `hope-metahuman-embed.standalone.js` | The element with three.js bundled in. One script tag, no import map.                                 | ~655 KB min          |
+| Package                              | What it is                                                                                           | Size                |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------- |
+| `@hope-metahuman/sdk`                | The protocol client. Auth, WebSocket streaming, audio, animation buffering. No runtime dependencies. | ~14 KB min          |
+| `@hope-metahuman/avatar-three`       | Three.js renderer. Loads a GLB, drives its morph targets, animates blink and gaze.                   | ~6 KB min + `three` |
+| `@hope-metahuman/avatar-live`        | Premium Avatar WebRTC video/audio renderer, backed by `livekit-client`.                              | peer-dependent      |
+| `@hope-metahuman/embed`              | One custom element for Standard and Premium Metahumans.                                              | build-dependent     |
+| `hope-metahuman-embed.standalone.js` | The element with Three.js and the Premium media client bundled. One script tag.                      | published artifact  |
 
 Choose by how much control you want:
 
 - **A static page, no build step** → the standalone bundle from the CDN.
 - **An application with a bundler** → `@hope-metahuman/embed` from npm, so your
   own three.js is the only copy.
+- **A React Native application** → copy the typed
+  [`HopeMetahumanView`](./examples/react-native/components/HopeMetahumanView.tsx).
 - **Your own interface, our rendering** → `@hope-metahuman/sdk` +
   `@hope-metahuman/avatar-three`.
 - **Your own rendering engine, or no avatar at all** → `@hope-metahuman/sdk`.
 
-Native React, Angular, React Native, and Swift/Kotlin packages are planned; see
-[Roadmap](#roadmap).
+React Native is available today through the reusable WebView component in this
+repository; a fully native audio/rendering package remains on the roadmap.
 
 ## Getting the SDK
 
@@ -129,11 +132,16 @@ skip this step entirely until you have seen the thing work. That is a
 <hope-metahuman
   base-url="https://api.hope-metahuman.example"
   token-endpoint="/api/hope/stream-token"
+  metahuman-id="3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40"
   model-url="/models/your-avatar.glb"
   voice-id="a1b2c3d4"
   voice-model="sonic-3"
 ></hope-metahuman>
 ```
+
+For a Premium Avatar, keep `metahuman-id`, omit `model-url`, and optionally add
+`poster-url`. The same element starts its live session and displays the
+lip-synced WebRTC stream.
 
 ### 3. Or build your own interface
 
@@ -208,11 +216,13 @@ server closes when the reply ends. Multi-turn memory comes from reusing a
 | Element attributes, events, and theming      | [docs/embed-element.md](./docs/embed-element.md)                     |
 | Protocol client API                          | [docs/javascript-api.md](./docs/javascript-api.md)                   |
 | Avatar rendering and the renderer API        | [docs/three-renderer.md](./docs/three-renderer.md)                   |
+| Premium Avatar lifecycle and renderer        | [docs/premium-avatars.md](./docs/premium-avatars.md)                 |
 | Avatar model requirements                    | [docs/avatars.md](./docs/avatars.md)                                 |
 | Obtaining, pinning, and self-hosting the SDK | [docs/self-hosting.md](./docs/self-hosting.md)                       |
 | Commercial licence terms                     | [docs/commercial-license.md](./docs/commercial-license.md)           |
 | Running the static example                   | [examples/static-chat/README.md](./examples/static-chat/README.md)   |
 | A token endpoint you can copy                | [examples/token-server/README.md](./examples/token-server/README.md) |
+| React Native Standard/Premium component      | [examples/react-native/README.md](./examples/react-native/README.md) |
 | Service protocol reference                   | Your deployment's docs site                                          |
 
 The published packages ship TypeScript declarations with full JSDoc, so editor
@@ -229,12 +239,10 @@ A few consequences are worth stating plainly:
   tag, not in an environment variable your bundler inlines. A secret does not
   expire, so one page view lets a visitor use your tenant indefinitely, and
   revoking it means revoking the key for everyone. Use `TokenEndpointProvider`
-  or your own `TokenProvider`; keep `MachineTokenProvider` on a server. Nothing
-  in the SDK enforces this — it runs wherever `fetch` does, because a
-  `window` check would be both trivially defeated and wrong for Electron and
-  edge runtimes. On `localhost`, exchanging a key from the page is a fair trade
-  for getting started quickly; take the values at runtime so nothing is
-  committed, and move the exchange to a server before you deploy.
+  or your own `TokenProvider`; keep `MachineTokenProvider` on a server. Runtime
+  detection is not a security boundary—your architecture is. On `localhost`,
+  the static example can exchange a key entered at runtime; move that exchange
+  to a server before deployment.
 - **Tokens are held in memory, never in `localStorage` or `sessionStorage`.**
   The SDK never writes a credential to storage, and neither should you.
 - **Query-string tokens are a browser-only concession.** The `WebSocket`
@@ -286,14 +294,16 @@ Available now:
 - Browser and Node.js protocol client
 - Three.js avatar rendering
 - `<hope-metahuman>` custom element for static sites
+- Live Premium Avatar sessions and WebRTC rendering
+- React Native Standard/Premium example and reusable component
 
 Planned:
 
 - `@hope-metahuman/react` — hooks and a `<Metahuman />` component built on
   React Three Fiber
 - `@hope-metahuman/angular` — a component and injectable service
-- `@hope-metahuman/react-native` — native audio capture and playback, with
-  three.js rendering through `expo-gl`
+- `@hope-metahuman/react-native` — fully native audio capture/playback and
+  rendering (the current component uses the supported browser SDK in a WebView)
 - Native Swift and Kotlin clients
 - Worked examples for each, in this repository
 

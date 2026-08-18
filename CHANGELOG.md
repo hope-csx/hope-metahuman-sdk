@@ -15,6 +15,12 @@ Each one will say so here.
 
 ### Added
 
+- **`examples/react-native`** — an Expo application and reusable typed
+  `HopeMetahumanView` supporting Standard GLB and Premium live-video
+  Metahumans, native token retrieval, event forwarding, and imperative controls.
+- **Premium Avatar documentation** covering live-session creation, WebRTC
+  rendering, audio routing, fallback, and billable-session teardown.
+
 - **`examples/static-chat`** — a working static site with no build step and no
   backend: settings panel, event log, and a full conversation loop.
 - **Documentation** for the whole SDK surface:
@@ -35,6 +41,9 @@ Each one will say so here.
   Node test can reach.
 
 ### Notes
+
+- The static example now switches between Standard and Premium Metahumans and
+  exposes Metahuman ID, poster, fallback-video, and live-avatar state settings.
 
 This repository contains **no SDK source code**. The SDK is proprietary and
 commercially licensed; it is built from a private repository and delivered as a
