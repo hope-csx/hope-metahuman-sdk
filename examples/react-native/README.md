@@ -39,7 +39,6 @@ address with a trusted certificate or a tunnel.
   kind="standard"
   baseUrl="https://api.hope-metahuman.example"
   tokenEndpoint="https://your-app.example/api/hope/stream-token"
-  voiceId="a1b2c3d4"
   metahumanId="optional-tenant-metahuman-id"
   modelUrl="https://assets.example/avatar.glb"
   framing="bust"
@@ -50,7 +49,8 @@ address with a trusted certificate or a tunnel.
 The GLB needs the 52 ARKit morph targets described in
 [`docs/avatars.md`](../../docs/avatars.md). Its server must allow the app view's
 service origin to fetch it. The component explicitly disables the live-avatar
-probe on this path.
+probe on this path. When `metahumanId` is set, omit `voiceId` — the Metahuman
+already has a voice.
 
 ## Premium Metahuman
 
@@ -59,7 +59,6 @@ probe on this path.
   kind="premium"
   baseUrl="https://api.hope-metahuman.example"
   tokenEndpoint="https://your-app.example/api/hope/stream-token"
-  voiceId="a1b2c3d4"
   metahumanId="3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40"
   posterUrl="https://assets.example/dana.jpg"
   onEvent={handleEvent}

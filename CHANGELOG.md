@@ -13,6 +13,12 @@ Each one will say so here.
 
 ## [Unreleased]
 
+### Changed
+
+- A configured Metahuman is addressed by `metahuman-id` alone. `voice-id` /
+  `voiceId` is only for an ad-hoc session that is not a tenant Metahuman.
+  React Native `HopeMetahumanView` no longer requires `voiceId`.
+
 ### Added
 
 - **`examples/react-native`** — an Expo application and reusable typed

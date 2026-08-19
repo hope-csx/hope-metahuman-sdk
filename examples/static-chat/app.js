@@ -323,8 +323,8 @@ await applySettings(settings);
 
 // An unconfigured page cannot connect to anything, so open the settings panel
 // rather than leaving a start button that can only fail.
-if (!settings.baseUrl || !settings.voiceId) {
+if (!settings.baseUrl || (!settings.voiceId && !settings.metahumanId)) {
   settingsPanel.hidden = false;
   settingsToggle.setAttribute('aria-expanded', 'true');
-  log('setup', 'Enter a service base URL and voice ID to begin.');
+  log('setup', 'Enter a service base URL and a Metahuman ID to begin.');
 }

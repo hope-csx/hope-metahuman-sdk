@@ -18,9 +18,6 @@ guides, and the API reference for the **HOPE Metahuman Service** SDK.
   token-endpoint="/api/hope/stream-token"
   metahuman-id="3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40"
   model-url="/models/your-avatar.glb"
-  voice-id="a1b2c3d4"
-  voice-model="sonic-3"
-  metahuman-name="Dana"
 ></hope-metahuman>
 ```
 
@@ -134,8 +131,6 @@ skip this step entirely until you have seen the thing work. That is a
   token-endpoint="/api/hope/stream-token"
   metahuman-id="3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40"
   model-url="/models/your-avatar.glb"
-  voice-id="a1b2c3d4"
-  voice-model="sonic-3"
 ></hope-metahuman>
 ```
 
@@ -152,8 +147,7 @@ import { AvatarRenderer } from '@hope-metahuman/avatar-three';
 const session = new MetahumanSession({
   baseUrl: 'https://api.hope-metahuman.example',
   tokenProvider: new TokenEndpointProvider({ url: '/api/hope/stream-token' }),
-  voice: { id: 'a1b2c3d4', model: 'sonic-3' },
-  metahumanName: 'Dana',
+  metahumanId: '3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40',
 });
 
 session.on('replyToken', (fragment) => transcript.append(fragment));

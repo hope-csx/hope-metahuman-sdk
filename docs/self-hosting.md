@@ -19,8 +19,7 @@ The fastest way to a working page, and the right choice for a public website:
 <hope-metahuman
   base-url="https://api.your-deployment.example"
   token-endpoint="/api/metahuman-token"
-  model-url="/models/your-avatar.glb"
-  voice-id="your-voice-id"
+  metahuman-id="your-metahuman-id"
 ></hope-metahuman>
 ```
 

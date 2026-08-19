@@ -11,7 +11,7 @@ const configuration = {
   baseUrl: process.env.EXPO_PUBLIC_HOPE_API_BASE ?? 'https://api.example.invalid',
   tokenEndpoint:
     process.env.EXPO_PUBLIC_HOPE_TOKEN_ENDPOINT ?? 'https://app.example.invalid/api/hope/token',
-  voiceId: process.env.EXPO_PUBLIC_HOPE_VOICE_ID ?? 'replace-with-a-voice-id',
+  voiceId: process.env.EXPO_PUBLIC_HOPE_VOICE_ID,
   standardMetahumanId: process.env.EXPO_PUBLIC_HOPE_STANDARD_METAHUMAN_ID,
   standardModelUrl:
     process.env.EXPO_PUBLIC_HOPE_STANDARD_MODEL_URL ?? 'https://assets.example.invalid/avatar.glb',
@@ -34,7 +34,7 @@ export default function HomeScreen() {
   const shared = {
     baseUrl: configuration.baseUrl,
     tokenEndpoint: configuration.tokenEndpoint,
-    voiceId: configuration.voiceId,
+    ...(configuration.voiceId ? { voiceId: configuration.voiceId } : {}),
     metahumanName: 'HOPE',
     onEvent,
   };

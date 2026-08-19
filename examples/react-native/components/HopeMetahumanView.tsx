@@ -29,8 +29,12 @@ type SharedProps = {
   baseUrl: string;
   /** Your backend endpoint returning `{ token, expiresIn }`. */
   tokenEndpoint: string;
-  /** Voice used for fallback/local synthesis. */
-  voiceId: string;
+  /**
+   * Voice for an ad-hoc session that is not a configured Metahuman.
+   * Omit when `metahumanId` is set — the service uses the voice stored on
+   * that Metahuman.
+   */
+  voiceId?: string;
   voiceModel?: string;
   metahumanName?: string;
   userName?: string;

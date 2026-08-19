@@ -21,9 +21,8 @@ entire integration — no import map, nothing else to load:
 <hope-metahuman
   base-url="https://api.hope-metahuman.example"
   token-endpoint="/api/hope/stream-token"
+  metahuman-id="3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40"
   model-url="/models/your-avatar.glb"
-  voice-id="a1b2c3d4"
-  voice-model="sonic-3"
 ></hope-metahuman>
 ```
 
@@ -57,7 +56,7 @@ A complete working page is in
 | `base-url`       | yes      | Origin of your HOPE Metahuman Service deployment         |
 | `token-endpoint` | —        | URL on your backend returning `{ token, expiresIn }`     |
 | `token`          | —        | A machine token you already have. Expires in ten minutes |
-| `voice-id`       | yes      | Voice from your tenant's catalogue                       |
+| `voice-id`       | —        | Voice for an ad-hoc session. Omit when `metahuman-id` is set — the Metahuman already has a voice |
 | `voice-model`    | —        | Synthesis model. Defaults to `sonic-3`                   |
 | `auth-mode`      | —        | `cookie` only for a same-site signed-in application      |
 
@@ -91,7 +90,7 @@ settings panel.
 | Attribute        | Default   | Description                                        |
 | ---------------- | --------- | -------------------------------------------------- |
 | `session-id`     | generated | Persist to resume a conversation across page loads |
-| `metahuman-id`   | —         | Resolve workflow and persona server-side           |
+| `metahuman-id`   | —         | Tenant Metahuman. Resolves workflow, persona, language, and voice |
 | `metahuman-name` | —         | The persona's own name                             |
 | `user-name`      | —         | Name of the person speaking                        |
 | `language`       | `en-US`   | BCP-47 tag for transcription and replies           |
@@ -176,7 +175,6 @@ the avatar's own lip-synced audio track.
   base-url="https://api.hope-metahuman.example"
   token-endpoint="/api/hope/stream-token"
   metahuman-id="3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40"
-  voice-id="a1b2c3d4"
   poster-url="/images/dana.jpg"
 ></hope-metahuman>
 ```

@@ -161,7 +161,7 @@ short:
 // Configuration is just attributes.
 el.setAttribute('base-url', settings.baseUrl);
 el.setAttribute('metahuman-id', settings.metahumanId);
-el.setAttribute('voice-id', settings.voiceId);
+if (settings.voiceId) el.setAttribute('voice-id', settings.voiceId);
 
 // Events are ordinary DOM events.
 el.addEventListener('hope-reply', (event) => log('reply', event.detail.text));

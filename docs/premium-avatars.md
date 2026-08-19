@@ -13,7 +13,6 @@ path whenever it has a `metahuman-id` and no `model-url`:
   base-url="https://api.hope-metahuman.example"
   token-endpoint="/api/hope/stream-token"
   metahuman-id="3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40"
-  voice-id="a1b2c3d4"
   poster-url="/images/dana.jpg"
 ></hope-metahuman>
 ```

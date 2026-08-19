@@ -84,10 +84,7 @@ import { MetahumanSession, TokenEndpointProvider } from '@hope-metahuman/sdk';
 const session = new MetahumanSession({
   baseUrl: 'https://api.hope-metahuman.example',
   tokenProvider: new TokenEndpointProvider({ url: '/api/hope/stream-token' }),
-  voice: { id: 'a1b2c3d4', model: 'sonic-3' },
   metahumanId: '3f9a2b71-5c4d-4e18-b062-7a1e9d3c8f40',
-  metahumanName: 'Dana',
-  language: 'en-US',
 });
 ```
 
@@ -195,7 +192,6 @@ const run = await client.run({
   userQuery: 'Tell me about the mission.',
   sessionId,
   metahumanId,
-  voice: { id: 'a1b2c3d4', model: 'sonic-3' },
   features: { tts: true, a2f3d: true },
 });
 

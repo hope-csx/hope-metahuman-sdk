@@ -3,8 +3,8 @@
  *
  * Edit these values to point the page at your deployment and skip retyping
  * them on every visit. Anything you save in the settings panel overrides what
- * is here, and the panel opens automatically while `baseUrl` and `voiceId` are
- * still empty.
+ * is here, and the panel opens automatically while `baseUrl` is empty, or while
+ * both `metahumanId` and `voiceId` are empty.
  *
  * Never put an API key secret in this file. It is served to the browser
  * verbatim, so anything in it is public to every visitor. The only credential
@@ -46,7 +46,7 @@ export default {
   posterUrl: '',
   previewVideoUrl: '',
 
-  /** Voice from your tenant's catalogue. */
+  /** Voice for an ad-hoc session. Leave empty when `metahumanId` is set. */
   voiceId: 'f014dce5-df0e-4cfa-98e1-bd4bb73bb0b1',
   voiceModel: 'sonic-3',
 
