@@ -89,6 +89,15 @@ type BridgeMessage =
  * Standard Metahumans render an ARKit GLB with WebGL. Premium Metahumans start
  * a live avatar session and receive their lip-synced video and audio over
  * WebRTC. The same conversation UI and imperative API work for both.
+ *
+ * CLIENT tool calling is deliberately not wired up here. The element takes
+ * handlers as a `tools` property of functions, and functions cannot cross the
+ * WebView bridge — supporting them natively means proxying each call over the
+ * message channel and correlating the answer, the way `token-request` already
+ * does. Until this example does that, a React Native application that needs the
+ * metahuman to act on it should either drive `@hope-metahuman/sdk` directly in a
+ * native-side session or host its own web view whose page sets `el.tools`
+ * in-page. See `docs/embed-element.md` for the element-level contract.
  */
 export const HopeMetahumanView = forwardRef<HopeMetahumanViewHandle, HopeMetahumanViewProps>(
   function HopeMetahumanView(props, forwardedRef) {

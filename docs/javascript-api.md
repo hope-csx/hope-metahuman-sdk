@@ -116,6 +116,8 @@ starts the conversation; without it, the first reply plays to nobody.
 | `micLevel`       | `number`                                            | Amplitude in `[0, 1]`, for a level meter                     |
 | `agentEvent`     | `{ event, data }`                                   | Non-fatal signals such as `a2f3d_error`                      |
 | `audioTransport` | `'binary' \| 'live-avatar'`                         | Whether speech is local PCM or the Premium Avatar track      |
+| `toolsAccepted`  | `readonly string[]`                                 | Which offered tools the service accepted; see below          |
+| `tool`           | `{ name, ok }`                                      | A tool call finished and was answered                        |
 | `error`          | `Error`                                             | The session stays usable unless `state` says otherwise       |
 
 `on()` returns an unsubscribe function:
@@ -144,6 +146,69 @@ even when frames arrive in bursts. Rendering is deliberately not part of the
 session, which is why this package has no 3D dependency —
 [`@hope-metahuman/avatar-three`](./three-renderer.md) wires it to Three.js in about
 twenty lines.
+
+### Tool calling
+
+Pass `tools` to let the metahuman act on your application rather than only talk
+about it. Each key is the name of a `CLIENT` tool binding registered for the
+tenant in the admin portal; each value is the function that runs when the agent
+calls it.
+
+```ts
+const session = new MetahumanSession({
+  baseUrl,
+  tokenProvider,
+  metahumanId,
+  tools: {
+    save_personal_info: async (args) => savePersonalInfo(args),
+    go_to_step: async ({ step }) => goToStep(step),
+  },
+});
+```
+
+Handlers are offered on every turn, so assigning them here means one is in place
+for the first turn — including a turn the user starts by speaking. The return
+value is serialized as JSON and given to the agent. Throwing is a supported
+outcome: the agent is told the tool failed and can say so, which beats a silent
+failure it reports as success. Only the error's `message` crosses the wire, never
+the stack.
+
+`session.tools` is assignable too, which is what a page that swaps handlers as it
+navigates should use. A replacement takes effect on the next turn; the turn in
+flight keeps the handlers it started with, because the agent was told which tools
+that turn had and is entitled to an answer from the same set.
+
+**Offering a name does not make it callable.** The service accepts only names
+with an active `CLIENT` binding on the tenant, and reports the accepted subset on
+`toolsAccepted`:
+
+```ts
+const EXPECTED = ['save_personal_info', 'go_to_step'];
+
+session.on('toolsAccepted', (accepted) => {
+  const missing = EXPECTED.filter((name) => !accepted.includes(name));
+  if (missing.length > 0) fallBackToManualIntake(missing);
+});
+```
+
+Worth wiring up rather than logging. A binding that is renamed, deactivated, or
+attached to a different metahuman produces a conversation that runs perfectly and
+quietly saves nothing, and every symptom of that points at your own code.
+
+The list arrives with each turn's first frame, not at construction — the accepted
+set is negotiated on the connection a turn opens, so there is nothing to report
+until a turn has begun. Expect the event once per turn and make the listener
+idempotent. An empty array means every offered name was refused; the event is not
+emitted at all when no tools were offered, since there is no verdict to give.
+
+Use `tool` to drive a saving indicator:
+
+```ts
+session.on('tool', ({ name, ok }) => setSaving(name, ok));
+```
+
+Both events fire after the answer has gone back to the agent, so neither is a
+chance to intercept the call.
 
 ### Multi-turn memory
 
@@ -232,6 +297,16 @@ const run = await client.run({
 
 run.on('tool', ({ name, ok }) => console.log(name, ok));
 ```
+
+The accepted subset arrives on this layer's `meta` event:
+
+```ts
+run.on('meta', ({ tools }) => console.log('accepted', tools));
+```
+
+Handlers here are scoped to one run, so a conversation must supply them on every
+turn. Prefer [`MetahumanSession`](#tool-calling), which forwards one set to every
+turn and leaves no window in which a call arrives unhandled.
 
 ## Premium Avatar sessions
 

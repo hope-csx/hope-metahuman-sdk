@@ -291,6 +291,16 @@ element.addEventListener('hope-user-message', (event) => {
 element.addEventListener('hope-reply', (event) => {
   log('reply', event.detail.text);
 });
+// Which CLIENT tool bindings the service accepted for this turn. An application
+// that depends on a tool should compare this against the names it registered and
+// degrade when one is missing, rather than discovering it from an empty database.
+element.addEventListener('hope-tools-accepted', (event) => {
+  const { tools } = event.detail;
+  log('tools', tools.length > 0 ? tools.join(', ') : 'none accepted');
+});
+element.addEventListener('hope-tool', (event) => {
+  log('tool', `${event.detail.name} ${event.detail.ok ? 'ok' : 'failed'}`);
+});
 element.addEventListener('hope-error', (event) => {
   log('error', event.detail.error.message);
 });

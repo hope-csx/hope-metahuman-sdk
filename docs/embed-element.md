@@ -210,6 +210,7 @@ const el = document.querySelector('hope-metahuman');
 
 el.tokenProvider = myProvider; // takes precedence over the attributes
 el.scenarioFields = [{ field_name: 'unit', stated_value: 'Ranger Battalion', is_deceptive: false }];
+el.tools = { go_to_step: async ({ step }) => goToStep(step) }; // see Tool calling
 
 await el.start(); // must be inside a user gesture
 await el.send('Hello'); // resolves when the reply finishes
@@ -230,20 +231,81 @@ as an attribute can be reached through them.
 
 All events bubble, cross shadow boundaries, and carry their payload in `detail`.
 
-| Event               | `detail`                                                                                            |
-| ------------------- | --------------------------------------------------------------------------------------------------- |
-| `hope-ready`        | `{ sessionId }`                                                                                     |
-| `hope-state`        | `{ state: 'idle' \| 'listening' \| 'thinking' \| 'speaking' }`                                      |
-| `hope-avatar-state` | `{ state: 'idle' \| 'connecting' \| 'waiting' \| 'live' \| 'reconnecting' \| 'ended' \| 'failed' }` |
-| `hope-user-message` | `{ text }`                                                                                          |
-| `hope-reply`        | `{ text }`                                                                                          |
-| `hope-error`        | `{ error }`                                                                                         |
+| Event                 | `detail`                                                                                            |
+| --------------------- | --------------------------------------------------------------------------------------------------- |
+| `hope-ready`          | `{ sessionId }`                                                                                     |
+| `hope-state`          | `{ state: 'idle' \| 'listening' \| 'thinking' \| 'speaking' }`                                      |
+| `hope-avatar-state`   | `{ state: 'idle' \| 'connecting' \| 'waiting' \| 'live' \| 'reconnecting' \| 'ended' \| 'failed' }` |
+| `hope-user-message`   | `{ text }`                                                                                          |
+| `hope-reply`          | `{ text }`                                                                                          |
+| `hope-tools-accepted` | `{ tools: string[] }`                                                                               |
+| `hope-tool`           | `{ name, ok }`                                                                                      |
+| `hope-error`          | `{ error }`                                                                                         |
 
 ```js
 el.addEventListener('hope-reply', (event) => {
   analytics.track('metahuman_reply', { length: event.detail.text.length });
 });
 ```
+
+## Tool calling
+
+Assign `tools` to let the metahuman act on the page rather than only talk about
+it. Each key is the name of a `CLIENT` tool binding registered for the tenant in
+the admin portal; each value is the function that runs when the agent calls it.
+
+It is a property rather than an attribute because the values are functions — the
+same reason `tokenProvider` is. Set it before `start()` and the handlers are in
+place for the first turn, whoever speaks first:
+
+```js
+const el = document.querySelector('hope-metahuman');
+
+el.tools = {
+  save_personal_info: async (args) => savePersonalInfo(args),
+  go_to_step: async ({ step }) => goToStep(step),
+};
+
+await el.start();
+```
+
+Assigning after `start()` is also supported and takes effect on the next turn, so
+a page can swap handlers as it navigates. A handler's return value is serialized
+as JSON and given to the agent; throwing tells the agent the tool failed, which
+beats a silent failure it will report to the user as success. Only the error's
+`message` crosses the wire, never the stack.
+
+**Offering a name does not make it callable.** The service accepts only names
+with an active `CLIENT` binding on the tenant, and announces the accepted subset
+on `hope-tools-accepted`:
+
+```js
+const EXPECTED_TOOLS = ['save_personal_info', 'go_to_step'];
+
+el.addEventListener('hope-tools-accepted', ({ detail }) => {
+  const missing = EXPECTED_TOOLS.filter((name) => !detail.tools.includes(name));
+  if (missing.length > 0) fallBackToManualIntake(missing);
+});
+```
+
+Worth wiring up rather than logging: a binding that is renamed, deactivated, or
+attached to a different metahuman leaves a kiosk having a pleasant conversation
+that saves nothing, and every symptom of that points at your own code.
+
+The event fires with each turn's first frame rather than at `start()`, because
+the accepted set is negotiated on the turn's own connection — there is nothing to
+report until a turn has begun. Make the listener idempotent. An empty `tools`
+array means every name was refused; the event does not fire at all when the page
+registered no tools.
+
+`hope-tool` reports each finished call, for a saving indicator:
+
+```js
+el.addEventListener('hope-tool', ({ detail }) => setSaving(detail.name, detail.ok));
+```
+
+Both events fire after the answer has gone back to the agent, so neither is a
+chance to intercept the call.
 
 ## Theming
 

@@ -21,6 +21,16 @@ Each one will say so here.
 
 ### Added
 
+- **Tool calling documentation for the session and the element.** Handlers are no
+  longer an `AgentStreamClient`-only option: `MetahumanSession` takes a `tools`
+  map and forwards it to every turn, and `<hope-metahuman>` exposes a `tools`
+  property alongside `tokenProvider` and `scenarioFields`. Both surface the
+  accepted-tools list the service returns — as the `toolsAccepted` event and the
+  `hope-tools-accepted` event respectively — so an application can fail closed
+  when a binding it depends on has been renamed or deactivated, and both report
+  each finished call (`tool` / `hope-tool`) for driving a saving indicator. See
+  [`docs/embed-element.md`](docs/embed-element.md#tool-calling) and
+  [`docs/javascript-api.md`](docs/javascript-api.md#tool-calling).
 - **`examples/react-native`** — an Expo application and reusable typed
   `HopeMetahumanView` supporting Standard GLB and Premium live-video
   Metahumans, native token retrieval, event forwarding, and imperative controls.
