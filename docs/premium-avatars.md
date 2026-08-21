@@ -23,20 +23,26 @@ the billable session when the element is stopped or removed.
 
 ## Direct API
 
-Applications building their own browser interface install the live renderer
-and its peer dependency:
+Applications building their own browser interface drive the live renderer
+directly. It is the one part of the API that is not a static export of the
+bundle: it depends on the LiveKit media client, which the import-map build
+leaves external, so it is fetched on demand by `loadLiveAvatar()` and awaited
+before use. Everything else comes straight off the bundle.
 
-```bash
-npm install @hope-metahuman/sdk @hope-metahuman/avatar-live livekit-client
+```js
+import {
+  LiveAvatarSessionClient,
+  MetahumanSession,
+  loadLiveAvatar,
+} from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
+
+const { LiveAvatarRenderer, createLivekitRoom } = await loadLiveAvatar();
 ```
 
 Then perform three steps in order: start a session, join the room, and route
 agent speech to it.
 
-```ts
-import { LiveAvatarSessionClient, MetahumanSession } from '@hope-metahuman/sdk';
-import { LiveAvatarRenderer, createLivekitRoom } from '@hope-metahuman/avatar-live';
-
+```js
 const sessions = new LiveAvatarSessionClient({ baseUrl, tokenProvider });
 const live = await sessions.start(metahumanId);
 
@@ -58,7 +64,7 @@ audio too would make every reply audible twice.
 
 Clear the id if the renderer fails so the next turn resumes local PCM playback:
 
-```ts
+```js
 session.liveAvatarSessionId = null;
 ```
 
@@ -111,7 +117,7 @@ never log or persist it, render only the participant named by
 Premium renderer time is billed and concurrency is capped. Release it when the
 screen, page, or conversation ends instead of waiting for expiry:
 
-```ts
+```js
 await renderer.disconnect();
 await sessions.end(live.id);
 ```

@@ -86,22 +86,17 @@ Same-origin, as this example runs, needs neither.
 ## In other frameworks
 
 The endpoint is a POST to `/oauth/token` and a JSON response; nothing here is
-Express-specific. The SDK ships `MachineTokenProvider`, which does the exchange
-and the caching for you in any Node.js runtime:
+Express-specific, and nothing here needs the SDK. The SDK is a browser bundle
+distributed from the CDN, so it is not something a server imports at all — the
+exchange is two HTTP calls and a cached expiry, which `server.js` does in about
+twenty lines and which ports to any runtime that can make an HTTPS request.
 
-```js
-import { MachineTokenProvider } from '@hope-metahuman/sdk';
+Keep three properties whatever you build it in:
 
-const tokens = new MachineTokenProvider({
-  baseUrl: process.env.HOPE_API_BASE,
-  clientId: process.env.HOPE_CLIENT_ID,
-  clientSecret: process.env.HOPE_CLIENT_SECRET,
-});
-
-app.get('/api/hope/stream-token', requireSignedInUser, async (_req, res) => {
-  res.json({ token: await tokens.getToken(), expiresIn: 600 });
-});
-```
-
-This example does the exchange by hand instead, so you can see exactly what it
-involves and copy it into a runtime where the SDK is not installed.
+- **Never return the client secret**, and never let it reach the browser. The
+  browser receives only the short-lived machine token.
+- **Authenticate the caller first.** `requireSignedInUser` stands in for your
+  own session check; without it the endpoint mints tokens for anyone.
+- **Cache the token and re-request it before it expires**, rather than
+  exchanging on every page load. Treat the expiry as advisory and refresh
+  early — a token that expires mid-conversation ends the session.

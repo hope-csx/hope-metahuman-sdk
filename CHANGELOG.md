@@ -2,8 +2,8 @@
 
 Notable changes to this repository — the examples, documentation, and tooling.
 
-Changes to the SDK packages themselves are published with their releases; this
-file tracks the material that lives here.
+Changes to the SDK bundle itself are published with its releases; this file
+tracks the material that lives here.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -15,6 +15,17 @@ Each one will say so here.
 
 ### Changed
 
+- **The SDK is distributed from the CDN only.** The `@hope-metahuman/*` npm
+  packages are retired, and the documentation no longer describes installing
+  them. The standalone bundle now exports the whole client API — `MetahumanSession`,
+  `AgentStreamClient`, the token providers, the error classes and the Three.js
+  renderer are all importable from the same URL that defines `<hope-metahuman>`,
+  and the Premium Avatar renderer loads on demand through `loadLiveAvatar()`.
+  Two consequences are worth reading before upgrading: the bundle carries no
+  TypeScript declarations, so a URL import types as `any`; and it is browser-only,
+  so there is no longer a way to run the protocol client under Node. Minting a
+  machine token needs one HTTPS call and no SDK — see
+  [`examples/token-server`](examples/token-server).
 - A configured Metahuman is addressed by `metahuman-id` alone. `voice-id` /
   `voiceId` is only for an ad-hoc session that is not a tenant Metahuman.
   React Native `HopeMetahumanView` no longer requires `voiceId`.
@@ -63,7 +74,7 @@ Each one will say so here.
 
 This repository contains **no SDK source code**. The SDK is proprietary and
 commercially licensed; it is built from a private repository and delivered as a
-minified, obfuscated bundle from `cdn.svc.hopemtp.app` or GitHub Packages. See
+minified, obfuscated bundle from `cdn.svc.hopemtp.app`. See
 [NOTICE.md](NOTICE.md).
 
 No 3D avatar models are distributed here. Bring your own ARKit-compatible GLB,

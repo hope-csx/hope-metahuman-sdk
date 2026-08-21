@@ -7,9 +7,13 @@ only under a commercial agreement with CornerstoneX.
 
 This licence covers the compiled artifacts distributed as:
 
-- the npm packages `@hope-metahuman/sdk`, `@hope-metahuman/avatar-three`, and
-  `@hope-metahuman/embed`;
-- the browser bundles served from `https://cdn.svc.hopemtp.app/sdk/`;
+- the browser bundles served from `https://cdn.svc.hopemtp.app/sdk/`, and copies
+  of those bundles served from your own origin;
+- the npm packages `@hope-metahuman/sdk`, `@hope-metahuman/avatar-three`,
+  `@hope-metahuman/avatar-live`, and `@hope-metahuman/embed`, where previously
+  obtained from a CornerstoneX registry. That channel is retired and no longer
+  issues new versions; copies already obtained under an Agreement remain
+  licensed on these terms;
 - any archive of those artifacts obtained from CornerstoneX.
 
 It does **not** cover the contents of the public

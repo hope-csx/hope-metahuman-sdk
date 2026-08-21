@@ -8,8 +8,8 @@ Report it through GitHub's private vulnerability reporting — the **Security** 
 of this repository, then **Report a vulnerability** — or by email to
 **security@cornerstonex.ai**.
 
-Please include what you can of the following: the affected package and version,
-what an attacker could do with the flaw, the steps to reproduce it, and any
+Please include what you can of the following: the affected bundle version, what
+an attacker could do with the flaw, the steps to reproduce it, and any
 proof-of-concept code.
 
 We acknowledge reports within three business days and aim to ship a fix for a
@@ -19,19 +19,21 @@ you know before we publish.
 
 ## Supported versions
 
-The latest minor release of each published package receives security fixes.
-Pre-1.0, that means the latest release.
+The current major.minor track of the bundle receives security fixes, shipped as
+a new patch release on that track. Pre-1.0, that means the latest release. A
+page pinned to an exact version has to be repointed to pick a fix up; a page on
+the track gets it on the next load.
 
 ## Scope
 
 In scope, and reportable here:
 
 - the examples, documentation, and tooling in this repository;
-- the SDK packages and browser bundles (`@hope-metahuman/sdk`,
-  `@hope-metahuman/avatar-three`, `@hope-metahuman/embed`, and the bundles served
-  from `cdn.svc.hopemtp.app`). These are built from a private repository, so we will
-  fix them there and publish a new release — please still report them here, or
-  by email.
+- the SDK bundle served from `cdn.svc.hopemtp.app`
+  (`hope-metahuman-embed.standalone.js`), including the `<hope-metahuman>`
+  element, the protocol client, and the renderers it exports. It is built from a
+  private repository, so we will fix it there and publish a new bundle release —
+  please still report it here, or by email.
 
 Out of scope: the HOPE Metahuman Service backend itself. Report those to
 security@cornerstonex.ai as a service issue, not an SDK issue.
@@ -66,8 +68,10 @@ themselves via the `workletUrl` option.
 The SDK will not store a credential in `localStorage`, `sessionStorage`, or a
 cookie; it holds tokens in memory only. It will not include a credential in an
 error message or log line. It will not disable TLS verification anywhere, for
-any reason, including in tests. It adds no runtime dependency to the core
-package, which keeps its supply chain to exactly what you can read here.
+any reason, including in tests. The protocol client carries no third-party
+runtime dependency of its own; the third-party code inside the bundle is the
+rendering engine and the Premium Avatar media client, and it is there so that a
+page needs nothing beyond the one file.
 
 ## Compliance context
 

@@ -3,8 +3,11 @@
 The SDK is proprietary and is not part of this repository. This page covers how
 to obtain it and which delivery route suits your deployment.
 
-All three routes serve the same artifacts, built and published together. See
-[`../NOTICE.md`](../NOTICE.md) for what is and is not covered by which licence.
+There is one artifact, `hope-metahuman-embed.standalone.js`, and two ways to
+serve it: from our CDN, or from your own origin. Both routes deliver the same
+bytes from the same build, so a page can move between them by changing one URL.
+See [`../NOTICE.md`](../NOTICE.md) for what is and is not covered by which
+licence.
 
 ## Route 1 — the CDN
 
@@ -24,7 +27,23 @@ The fastest way to a working page, and the right choice for a public website:
 ```
 
 That is the whole integration. The standalone bundle embeds its own copy of
-three.js, so there is no import map and nothing else to load.
+three.js and of the Premium Avatar media client, so there is no import map, no
+separate `three` install, and nothing else to load.
+
+Code that wants the API rather than the element imports from the same URL:
+
+```js
+import {
+  AvatarRenderer,
+  MetahumanSession,
+  TokenEndpointProvider,
+} from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
+```
+
+A browser resolves that URL itself, so an import needs no build step. A bundler
+is a different matter: some leave an absolute URL for the browser to fetch at
+runtime and some refuse to resolve it at all, so if yours objects, take Route 2
+and import the file from your own tree.
 
 ### Version pinning
 
@@ -77,40 +96,26 @@ not match. Copy the result out of `examples/static-chat/vendor/` and serve it
 from your own static host:
 
 ```html
-<script type="module" src="/assets/hope-metahuman-embed.standalone.js"></script>
+<script type="module" src="/vendor/hope-metahuman-embed.standalone.js"></script>
 ```
+
+Imports work the same way, against your path instead of the CDN URL:
+
+```js
+import { MetahumanSession } from '/vendor/hope-metahuman-embed.standalone.js';
+```
+
+This is also the route for an application built with a bundler. The file is a
+static asset in your own tree rather than something fetched during the build, so
+a build machine with no egress still produces a working page, and the deployment
+carries the exact bytes you tested. Nothing else needs installing: three.js and
+the Premium Avatar media client are already inside the file.
 
 Point the script at a mirror you control with `HOPE_SDK_CDN`:
 
 ```bash
 HOPE_SDK_CDN=https://artifacts.internal.example pnpm vendor 0.1.4
 ```
-
-## Route 3 — npm, for application builds
-
-Building with a bundler — React, Angular, Vue, or anything else — is better
-served by the packages than by the standalone script, because your application
-supplies its own copy of three.js instead of loading a second one:
-
-```bash
-npm install @hope-metahuman/sdk @hope-metahuman/avatar-three \
-  @hope-metahuman/avatar-live @hope-metahuman/embed three livekit-client
-```
-
-The packages are published to GitHub Packages with restricted access, so
-authenticate first. In `.npmrc`:
-
-```ini
-@hope-metahuman:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${HOPE_SDK_TOKEN}
-```
-
-`HOPE_SDK_TOKEN` is issued with your licence. Keep it out of source control and
-out of any client bundle — it grants package downloads, not service access.
-
-`three` is the Standard renderer's peer dependency. `livekit-client` is the
-Premium renderer's peer dependency. Install them yourself so the application
-has one copy of each runtime.
 
 ## Content-Security-Policy
 

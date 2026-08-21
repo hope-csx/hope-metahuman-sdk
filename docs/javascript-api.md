@@ -1,15 +1,31 @@
-# @hope-metahuman/sdk
+# The JavaScript API
 
-The protocol client for the HOPE Metahuman Service. Zero runtime dependencies,
-identical in a browser and in Node.js.
+The protocol client for the HOPE Metahuman Service. It is exported from the same
+standalone bundle that defines `<hope-metahuman>`, and it runs in a browser only
+— see [Server-side use](#server-side-use) if you were looking for the Node.js
+client.
 
-> This package is commercially licensed and is not distributed in this
-> repository. See [self-hosting.md](./self-hosting.md) for how to obtain it,
-> including registry authentication.
+> The bundle is commercially licensed and is not distributed in this repository.
+> See [self-hosting.md](./self-hosting.md) for how to obtain it.
 
-```bash
-npm install @hope-metahuman/sdk
+There is nothing to install. Import what you need from the bundle URL:
+
+```js
+import {
+  MetahumanSession,
+  TokenEndpointProvider,
+} from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 ```
+
+Every example on this page imports from that URL. Serving the file from your own
+origin changes the specifier and nothing else — after `pnpm vendor` the same
+import reads `from '/vendor/hope-metahuman-embed.standalone.js'`. See
+[self-hosting.md](./self-hosting.md).
+
+The bundle carries no TypeScript declarations, so a URL import types as `any` and
+an editor will not hover-document it. This page is the reference in their place:
+every option, method, and event below states its exact type, and declaring the
+few shapes you actually use in your own project is how you get checking back.
 
 Most applications need one class, [`MetahumanSession`](#metahumansession), which
 composes microphone capture, transcription, the agent turn, gapless audio
@@ -25,8 +41,8 @@ at `POST /oauth/token`. Which provider you use depends on where your code runs.
 
 ### In a browser: `TokenEndpointProvider`
 
-```ts
-import { TokenEndpointProvider } from '@hope-metahuman/sdk';
+```js
+import { TokenEndpointProvider } from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 const tokenProvider = new TokenEndpointProvider({
   url: '/api/hope/stream-token',
@@ -41,23 +57,39 @@ it 30 seconds before it expires.
 A complete endpoint, in about forty lines of Express, is in
 [`examples/token-server`](../examples/token-server).
 
-### On a server: `MachineTokenProvider`
+### On a server
 
-```ts
-import { MachineTokenProvider } from '@hope-metahuman/sdk';
+Mint the token with an HTTPS call rather than with the SDK. The bundle is a
+browser artifact — it defines a custom element as it loads and throws on a
+runtime with no DOM — so there is nothing here for a server process to import.
 
-const tokenProvider = new MachineTokenProvider({
-  baseUrl: process.env.HOPE_API_BASE,
-  clientId: process.env.HOPE_CLIENT_ID,
-  clientSecret: process.env.HOPE_CLIENT_SECRET,
+That costs less than it sounds like. The whole server side of the integration is
+one call to the client-credentials grant, plus caching the result until shortly
+before it expires:
+
+```js
+const response = await fetch(new URL('/oauth/token', process.env.HOPE_API_BASE), {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+  body: JSON.stringify({
+    grant_type: 'client_credentials',
+    client_id: process.env.HOPE_CLIENT_ID,
+    client_secret: process.env.HOPE_CLIENT_SECRET,
+  }),
 });
+
+const { access_token, expires_in } = await response.json();
 ```
 
-**This class must never run in a browser or mobile UI process.** It holds an API
-key secret, which does not expire. The SDK deliberately cannot treat runtime
-detection as a security boundary because legitimate server runtimes can expose
-browser-like globals. Use your own backend and hand the client only the
-short-lived machine token.
+**The API key secret must never reach a browser or a mobile UI process.** It does
+not expire, and anything shipped to a page is readable by everyone who loads it.
+Keep the exchange on your backend and hand the client only the short-lived
+machine token. Runtime detection is not a substitute for this: legitimate server
+runtimes expose browser-like globals, so no check inside the SDK could enforce
+the boundary for you.
+
+A complete endpoint, with caching and a refresh margin, is in
+[`examples/token-server`](../examples/token-server).
 
 ### Other options
 
@@ -78,8 +110,11 @@ interface TokenProvider {
 
 ## MetahumanSession
 
-```ts
-import { MetahumanSession, TokenEndpointProvider } from '@hope-metahuman/sdk';
+```js
+import {
+  MetahumanSession,
+  TokenEndpointProvider,
+} from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 const session = new MetahumanSession({
   baseUrl: 'https://api.hope-metahuman.example',
@@ -143,9 +178,9 @@ function render(): void {
 Call it once per frame from your own render loop. It interpolates between
 buffered frames using the audio clock, so the face stays in step with the sound
 even when frames arrive in bursts. Rendering is deliberately not part of the
-session, which is why this package has no 3D dependency —
-[`@hope-metahuman/avatar-three`](./three-renderer.md) wires it to Three.js in about
-twenty lines.
+session, so the same pose is equally usable by your own engine and by the
+renderer that ships in the bundle. [`AvatarRenderer`](./three-renderer.md) wires
+it to Three.js in about twenty lines.
 
 ### Tool calling
 
@@ -313,13 +348,13 @@ turn and leaves no window in which a call arrives unhandled.
 `LiveAvatarSessionClient` starts and ends the service-side renderer used by a
 Premium Avatar. Its token provider needs the `agent.stream` scope.
 
-```ts
-import { LiveAvatarSessionClient } from '@hope-metahuman/sdk';
+```js
+import { LiveAvatarSessionClient } from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 const liveAvatars = new LiveAvatarSessionClient({ baseUrl, tokenProvider });
 const live = await liveAvatars.start(metahumanId);
 
-// Connect live.url/live.token with @hope-metahuman/avatar-live first.
+// Connect live.url/live.token with the renderer from loadLiveAvatar() first.
 session.liveAvatarSessionId = live.id;
 
 // On teardown: release billable renderer capacity promptly.
@@ -352,8 +387,8 @@ browsers that do not implement `worker-src`.
 If your policy cannot allow `blob:`, write the processor source to a file you
 host yourself and pass its URL:
 
-```ts
-import { buildSttWorkletSource } from '@hope-metahuman/sdk';
+```js
+import { buildSttWorkletSource } from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 // At build time: writeFileSync('public/hope-stt-worklet.js', buildSttWorkletSource());
 new MicrophoneCapture({ workletUrl: '/hope-stt-worklet.js' });
@@ -374,8 +409,11 @@ no matching on message text.
 | `ProtocolError`         | A frame did not match the contract — usually an SDK too old for the deployment |                       |
 | `MediaError`            | Microphone access or audio playback was refused                                |                       |
 
-```ts
-import { AuthenticationError, StreamError } from '@hope-metahuman/sdk';
+```js
+import {
+  AuthenticationError,
+  StreamError,
+} from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 session.on('error', (error) => {
   if (error instanceof AuthenticationError) {
@@ -397,31 +435,28 @@ made — check the key ID first, since that is the most common one.
 Error messages never include a token endpoint's response body, because that body
 is not guaranteed to be free of the submitted credential in every failure mode.
 
-## Using this in Node.js
+## Server-side use
 
-Node has no global `WebSocket` before v22, so supply one:
+There is no Node.js build. The bundle defines a custom element as it loads, which
+throws on a runtime with no DOM, so it cannot be imported by a server process
+however it is specified — a vendored file path fails the same way a CDN URL does.
 
-```ts
-import WebSocket from 'ws';
+For the one thing a backend genuinely has to do, minting a machine token, use an
+HTTPS call. See [On a server](#on-a-server) above and the runnable endpoint in
+[`examples/token-server`](../examples/token-server).
 
-const session = new MetahumanSession({
-  baseUrl,
-  tokenProvider,
-  voice,
-  authMode: 'header', // no query-string token outside a browser
-  webSocketFactory: ({ url, protocols, headers }) => new WebSocket(url, protocols, { headers }),
-});
-```
+If you need the protocol client itself outside a browser — driving a conversation
+from a server, batch-testing an agent, or running the stream through a headless
+process — talk to us. It is a supported use of the service and the client code
+has no browser dependency at its core, but it is not something this bundle can
+deliver, and the options are a headless browser today or a separate server build.
 
-Set `authMode: 'header'` wherever you can. The browser default of `query` exists
-only because the `WebSocket` constructor cannot set headers; query strings reach
-proxy access logs, which is tolerable for a ten-minute token and needless
-elsewhere.
-
-Audio playback and microphone capture require Web Audio and are browser-only.
-The protocol clients, decoding, and the blendshape buffer all work in Node.
+`authMode: 'header'` remains the right setting anywhere the `WebSocket`
+constructor can set headers. The browser default of `query` exists only because
+it cannot; query strings reach proxy access logs, which is tolerable for a
+ten-minute token and needless elsewhere.
 
 ## Licence
 
-This documentation is [MIT](../LICENSE) licensed. The package it describes is
+This documentation is [MIT](../LICENSE) licensed. The bundle it describes is
 proprietary and commercially licensed — see [../NOTICE.md](../NOTICE.md).

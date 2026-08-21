@@ -31,10 +31,10 @@ animation. The bundle embeds its own three.js, so there is nothing else to load.
 
 **This repository is MIT licensed and contains no SDK source code.**
 
-|                                     |                                                                        |
-| ----------------------------------- | ---------------------------------------------------------------------- |
-| **Here, MIT licensed**              | Examples, documentation, and tooling. Copy any of it.                  |
-| **Not here, commercially licensed** | The SDK bundles themselves, delivered from the CDN or GitHub Packages. |
+|                                     |                                                       |
+| ----------------------------------- | ----------------------------------------------------- |
+| **Here, MIT licensed**              | Examples, documentation, and tooling. Copy any of it. |
+| **Not here, commercially licensed** | The SDK bundle itself, delivered from the CDN.        |
 
 The SDK is proprietary. It is built from a private repository, shipped minified
 and obfuscated, and requires a commercial agreement to use. This repository
@@ -48,42 +48,60 @@ No 3D avatar models are distributed here either. Bring your own
 ARKit-compatible GLB, or load a platform-hosted model with your entitlement —
 see [docs/avatars.md](./docs/avatars.md).
 
-## The packages
+## One bundle, several ways in
 
-| Package                              | What it is                                                                                           | Size                |
-| ------------------------------------ | ---------------------------------------------------------------------------------------------------- | ------------------- |
-| `@hope-metahuman/sdk`                | The protocol client. Auth, WebSocket streaming, audio, animation buffering. No runtime dependencies. | ~14 KB min          |
-| `@hope-metahuman/avatar-three`       | Three.js renderer. Loads a GLB, drives its morph targets, animates blink and gaze.                   | ~6 KB min + `three` |
-| `@hope-metahuman/avatar-live`        | Premium Avatar WebRTC video/audio renderer, backed by `livekit-client`.                              | peer-dependent      |
-| `@hope-metahuman/embed`              | One custom element for Standard and Premium Metahumans.                                              | build-dependent     |
-| `hope-metahuman-embed.standalone.js` | The element with Three.js and the Premium media client bundled. One script tag.                      | published artifact  |
+The SDK ships as a single file, `hope-metahuman-embed.standalone.js`. Three.js
+and the Premium Avatar media client are bundled inside it, so a page needs one
+script tag and no import map. Everything below is an export of that one file
+rather than a separate thing to install:
+
+| Export                                          | What it is                                                                                        |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| `<hope-metahuman>`                              | The custom element. Registers itself when the bundle loads. Standard and Premium Metahumans.      |
+| `MetahumanSession`                              | The conversation loop — microphone, transcription, agent turn, speech playback, animation buffer. |
+| `AgentStreamClient`, `SttClient`                | The protocol clients, for one turn or one transcript at a time.                                   |
+| `MachineTokenProvider`, `TokenEndpointProvider` | Authentication.                                                                                   |
+| `AvatarRenderer`, `FaceController`              | Three.js rendering: loads a GLB, drives its morph targets, animates blink and gaze.               |
+| `loadLiveAvatar()`                              | Premium Avatar WebRTC renderer, fetched on demand.                                                |
 
 Choose by how much control you want:
 
-- **A static page, no build step** → the standalone bundle from the CDN.
-- **An application with a bundler** → `@hope-metahuman/embed` from npm, so your
-  own three.js is the only copy.
+- **A static page, no build step** → the `<hope-metahuman>` element, one script
+  tag. See [docs/embed-element.md](./docs/embed-element.md).
+- **Your own interface, our rendering** → `MetahumanSession` plus
+  `AvatarRenderer`. See [docs/javascript-api.md](./docs/javascript-api.md).
+- **Your own rendering engine, or no avatar at all** → `MetahumanSession` on its
+  own, and read the blendshape buffer yourself.
 - **A React Native application** → copy the typed
   [`HopeMetahumanView`](./examples/react-native/components/HopeMetahumanView.tsx).
-- **Your own interface, our rendering** → `@hope-metahuman/sdk` +
-  `@hope-metahuman/avatar-three`.
-- **Your own rendering engine, or no avatar at all** → `@hope-metahuman/sdk`.
 
 React Native is available today through the reusable WebView component in this
 repository; a fully native audio/rendering package remains on the roadmap.
 
 ## Getting the SDK
 
-```bash
-# Static sites — nothing to install
-# https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js
+There is nothing to install. Load the bundle from the CDN:
 
-# Application builds — restricted registry, licence credentials required
-npm install @hope-metahuman/embed three
+```html
+<script
+  type="module"
+  src="https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
+></script>
 ```
 
-Full instructions, including air-gapped self-hosting, registry authentication,
-version pinning, and Content-Security-Policy:
+Or import from it, when you want the API rather than the element:
+
+```js
+import { MetahumanSession } from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
+```
+
+Importing also defines `<hope-metahuman>`, which is harmless if you never use
+the element.
+
+Serving the file from your own origin is supported and is the only way this runs
+on an air-gapped network — `pnpm vendor` downloads it and checks it against its
+published SRI hash. Full instructions, including version pinning, subresource
+integrity, and Content-Security-Policy:
 [docs/self-hosting.md](./docs/self-hosting.md).
 
 ## Quick start
@@ -95,23 +113,28 @@ you ship to a page is readable by everyone who loads it. Instead, expose one
 small endpoint on your own backend that mints a short-lived machine token for
 signed-in users:
 
-```ts
-import { MachineTokenProvider } from '@hope-metahuman/sdk';
-
-const tokens = new MachineTokenProvider({
-  baseUrl: process.env.HOPE_API_BASE,
-  clientId: process.env.HOPE_CLIENT_ID,
-  clientSecret: process.env.HOPE_CLIENT_SECRET,
-});
-
+```js
 app.get('/api/hope/stream-token', requireSignedInUser, async (_req, res) => {
-  res.json({ token: await tokens.getToken(), expiresIn: 600 });
+  const response = await fetch(new URL('/oauth/token', process.env.HOPE_API_BASE), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      grant_type: 'client_credentials',
+      client_id: process.env.HOPE_CLIENT_ID,
+      client_secret: process.env.HOPE_CLIENT_SECRET,
+    }),
+  });
+
+  const { access_token, expires_in } = await response.json();
+  res.set('Cache-Control', 'no-store').json({ token: access_token, expiresIn: expires_in });
 });
 ```
 
-Two properties make this safe: your own authentication runs first, and what the
-browser receives expires in ten minutes. A complete, runnable version of this
-endpoint is in [`examples/token-server`](./examples/token-server).
+The SDK is a browser bundle, so there is nothing to install on your server — the
+exchange is one HTTPS call. Two properties make it safe: your own authentication
+runs first, and what the browser receives expires in ten minutes. A complete,
+runnable version, with caching and a refresh margin, is in
+[`examples/token-server`](./examples/token-server).
 
 Do not proxy the WebSockets themselves. Let the browser connect to the service
 directly — relaying audio through your backend adds latency to a
@@ -140,9 +163,12 @@ lip-synced WebRTC stream.
 
 ### 3. Or build your own interface
 
-```ts
-import { MetahumanSession, TokenEndpointProvider } from '@hope-metahuman/sdk';
-import { AvatarRenderer } from '@hope-metahuman/avatar-three';
+```js
+import {
+  AvatarRenderer,
+  MetahumanSession,
+  TokenEndpointProvider,
+} from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 const session = new MetahumanSession({
   baseUrl: 'https://api.hope-metahuman.example',
@@ -219,10 +245,11 @@ server closes when the reply ends. Multi-turn memory comes from reusing a
 | React Native Standard/Premium component      | [examples/react-native/README.md](./examples/react-native/README.md) |
 | Service protocol reference                   | Your deployment's docs site                                          |
 
-The published packages ship TypeScript declarations with full JSDoc, so editor
-hover documentation is the fastest reference for anything not covered above —
-the implementation is obfuscated, but the API surface is fully typed and
-documented.
+The CDN bundle does not carry TypeScript declarations, so the pages above are
+the reference — a URL import types as `any`, and an editor will not hover-document
+it. If you want types, declare the shapes you use in your own project against
+[docs/javascript-api.md](./docs/javascript-api.md), which documents every option,
+method, and event with its exact type.
 
 ## Security notes
 

@@ -3,13 +3,13 @@
 A chattable 3D metahuman in one tag, for pages that have no build step and no
 application stack.
 
-> This documents `@hope-metahuman/embed`, which is commercially licensed and is
-> not distributed in this repository. See
+> The element ships in the standalone SDK bundle, which is commercially licensed
+> and is not distributed in this repository. See
 > [self-hosting.md](./self-hosting.md) for how to obtain it.
 
 ## Loading it
 
-On a static page, use the standalone bundle. It embeds three.js, so this is the
+One script tag registers the element. The bundle embeds three.js, so this is the
 entire integration — no import map, nothing else to load:
 
 ```html
@@ -26,16 +26,19 @@ entire integration — no import map, nothing else to load:
 ></hope-metahuman>
 ```
 
-In an application with a bundler, install the package instead so your own
-three.js is the only copy in the output:
+An application with a build step loads the same file. Importing anything from
+the bundle also defines `<hope-metahuman>` as a side effect, so a module that
+already imports the JavaScript API has the element available too, and a module
+that wants only the element can import the bundle for its side effect alone:
 
-```bash
-npm install @hope-metahuman/embed three
+```js
+import 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 ```
 
-```ts
-import '@hope-metahuman/embed';
-```
+Serving the bundle from your own origin changes only the specifier — after
+`pnpm vendor`, `/vendor/hope-metahuman-embed.standalone.js`. See
+[self-hosting.md](./self-hosting.md), which is also the only route that works on
+an air-gapped network.
 
 The element renders its own chat interface in a shadow root: an avatar canvas, a
 transcript, a text input, a microphone button, and a start gate. It handles
@@ -74,6 +77,8 @@ script with values entered at runtime, so the secret is neither committed nor
 persisted:
 
 ```js
+import { MachineTokenProvider } from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
+
 // localhost only.
 document.querySelector('hope-metahuman').tokenProvider = new MachineTokenProvider({
   baseUrl: 'http://localhost:3001',
@@ -179,11 +184,11 @@ the avatar's own lip-synced audio track.
 ></hope-metahuman>
 ```
 
-The npm path also needs `livekit-client`; the standalone bundle already carries
-it. While the renderer starts, the element shows `poster-url`. A Standard
-Metahuman, a deployment without live rendering, or a failed renderer degrades
-to `preview-video-url`/`poster-url` with locally played speech instead of ending
-the conversation. See [premium-avatars.md](./premium-avatars.md).
+The bundle carries the media client the live path needs, so there is nothing
+extra to load. While the renderer starts, the element shows `poster-url`. A
+Standard Metahuman, a deployment without live rendering, or a failed renderer
+degrades to `preview-video-url`/`poster-url` with locally played speech instead
+of ending the conversation. See [premium-avatars.md](./premium-avatars.md).
 
 ## The start gate
 
@@ -372,5 +377,5 @@ Chrome, Edge, Safari 16.4+, and Firefox. All four have custom elements,
 
 ## Licence
 
-This documentation is [MIT](../LICENSE) licensed. The package it describes is
+This documentation is [MIT](../LICENSE) licensed. The bundle it describes is
 proprietary and commercially licensed — see [../NOTICE.md](../NOTICE.md).

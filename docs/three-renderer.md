@@ -1,27 +1,30 @@
-# @hope-metahuman/avatar-three
+# The Three.js avatar renderer
 
 Three.js rendering for HOPE Metahuman Service avatars. Loads a GLB, maps
 Audio2Face-3D blendshape weights onto its morph targets, and layers autonomous
 blink and gaze underneath the speech pose so the face is never quite still.
 
-> This package is commercially licensed and is not distributed in this
-> repository. See [self-hosting.md](./self-hosting.md) for how to obtain it.
-> No avatar models are distributed here either — see [avatars.md](./avatars.md).
+> The renderer ships in the standalone SDK bundle, which is commercially
+> licensed and is not distributed in this repository. See
+> [self-hosting.md](./self-hosting.md) for how to obtain it. No avatar models
+> are distributed here either — see [avatars.md](./avatars.md).
 
-```bash
-npm install @hope-metahuman/avatar-three three
-```
-
-`three` is a peer dependency, so your application controls the version and a
-page never ends up with two copies of the engine.
+Three.js is bundled inside the standalone file, so there is nothing to install
+and no import map to write. The renderer draws with that embedded copy rather
+than with one your application supplies. If your page already uses Three.js,
+the two copies do not share classes, so objects made by one will not satisfy
+the other's `instanceof` checks — treat the avatar as its own scene rather than
+something to merge into yours.
 
 ---
 
 ## Usage
 
-```ts
-import { MetahumanSession } from '@hope-metahuman/sdk';
-import { AvatarRenderer } from '@hope-metahuman/avatar-three';
+```js
+import {
+  AvatarRenderer,
+  MetahumanSession,
+} from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 const avatar = new AvatarRenderer({
   canvas: document.querySelector('canvas'),
@@ -179,8 +182,11 @@ wide jaw range can look slack at weight 1.0. Scaling is the cheapest fix.
 Blink, saccade, and gaze drift are pure functions over a state object, so they
 are testable and reusable outside Three.js:
 
-```ts
-import { createIdleAnimationState, updateIdleAnimation } from '@hope-metahuman/avatar-three';
+```js
+import {
+  createIdleAnimationState,
+  updateIdleAnimation,
+} from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 let state = createIdleAnimationState();
 state = updateIdleAnimation(state, deltaSeconds, { blinkIntervalSeconds: [2, 5] });
@@ -199,8 +205,8 @@ If your GLB ships with animation clips that also write morph targets, those
 tracks fight the speech pose. `clipWithoutMorphTracks(clip)` strips them and
 keeps the bone animation:
 
-```ts
-import { clipWithoutMorphTracks } from '@hope-metahuman/avatar-three';
+```js
+import { clipWithoutMorphTracks } from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 mixer.clipAction(clipWithoutMorphTracks(gltf.animations[0])).play();
 ```
@@ -209,8 +215,11 @@ Pass a root bone name as the second argument to also drop the clip's root
 rotation, which is what keeps the avatar facing the camera. `findRootBoneName`
 locates it:
 
-```ts
-import { clipWithoutMorphTracks, findRootBoneName } from '@hope-metahuman/avatar-three';
+```js
+import {
+  clipWithoutMorphTracks,
+  findRootBoneName,
+} from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 const rootBone = findRootBoneName(gltf.scene);
 mixer.clipAction(clipWithoutMorphTracks(gltf.animations[0], rootBone)).play();
@@ -222,5 +231,5 @@ animates.
 
 ## Licence
 
-This documentation is [MIT](../LICENSE) licensed. The package it describes is
+This documentation is [MIT](../LICENSE) licensed. The bundle it describes is
 proprietary and commercially licensed — see [../NOTICE.md](../NOTICE.md).
