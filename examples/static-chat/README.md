@@ -138,7 +138,7 @@ which is not a decision production needs to make on every page load:
 ```html
 <script
   type="module"
-  src="https://cdn.hope-lms.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
+  src="https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
 ></script>
 ```
 

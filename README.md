@@ -10,7 +10,7 @@ guides, and the API reference for the **HOPE Metahuman Service** SDK.
 ```html
 <script
   type="module"
-  src="https://cdn.hope-lms.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
+  src="https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
 ></script>
 
 <hope-metahuman
@@ -76,7 +76,7 @@ repository; a fully native audio/rendering package remains on the roadmap.
 
 ```bash
 # Static sites — nothing to install
-# https://cdn.hope-lms.app/sdk/v0.1/hope-metahuman-embed.standalone.js
+# https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js
 
 # Application builds — restricted registry, licence credentials required
 npm install @hope-metahuman/embed three

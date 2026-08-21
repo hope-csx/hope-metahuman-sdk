@@ -29,7 +29,7 @@ const repoRoot = join(dirname(fileURLToPath(import.meta.url)), '..');
 const vendorDir = join(repoRoot, 'examples', 'static-chat', 'vendor');
 
 const DEFAULT_VERSION = 'v0.1';
-const origin = process.env.HOPE_SDK_CDN ?? 'https://cdn.hope-lms.app';
+const origin = process.env.HOPE_SDK_CDN ?? 'https://cdn.svc.hopemtp.app';
 
 const requested = process.argv[2] ?? DEFAULT_VERSION;
 const version = requested.startsWith('v') ? requested : `v${requested}`;

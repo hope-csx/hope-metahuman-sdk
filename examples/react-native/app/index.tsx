@@ -9,6 +9,7 @@ import {
 
 const configuration = {
   baseUrl: process.env.EXPO_PUBLIC_HOPE_API_BASE ?? 'https://api.example.invalid',
+  sdkUrl: process.env.EXPO_PUBLIC_HOPE_SDK_URL,
   tokenEndpoint:
     process.env.EXPO_PUBLIC_HOPE_TOKEN_ENDPOINT ?? 'https://app.example.invalid/api/hope/token',
   voiceId: process.env.EXPO_PUBLIC_HOPE_VOICE_ID,
@@ -34,6 +35,7 @@ export default function HomeScreen() {
   const shared = {
     baseUrl: configuration.baseUrl,
     tokenEndpoint: configuration.tokenEndpoint,
+    ...(configuration.sdkUrl ? { sdkUrl: configuration.sdkUrl } : {}),
     ...(configuration.voiceId ? { voiceId: configuration.voiceId } : {}),
     metahumanName: 'HOPE',
     onEvent,

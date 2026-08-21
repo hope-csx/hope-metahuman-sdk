@@ -10,7 +10,7 @@ import type { StyleProp, ViewStyle } from 'react-native';
 import { Linking, View } from 'react-native';
 import { WebView, type WebViewMessageEvent } from 'react-native-webview';
 
-const DEFAULT_SDK_URL = 'https://cdn.hope-lms.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
+const DEFAULT_SDK_URL = 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 export type SessionState = 'idle' | 'listening' | 'thinking' | 'speaking';
 export type PremiumAvatarState =
@@ -202,8 +202,25 @@ export const HopeMetahumanView = forwardRef<HopeMetahumanViewHandle, HopeMetahum
           allowsInlineMediaPlayback
           mediaPlaybackRequiresUserAction
           mediaCapturePermissionGrantType="grantIfSameHostElsePrompt"
+          androidLayerType="hardware"
+          mixedContentMode="never"
           setSupportMultipleWindows={false}
           onMessage={onMessage}
+          onError={(event) =>
+            props.onEvent?.({
+              type: 'error',
+              message: `WebView could not load: ${event.nativeEvent.description}`,
+            })
+          }
+          onHttpError={(event) =>
+            props.onEvent?.({
+              type: 'error',
+              message: `WebView request failed (${event.nativeEvent.statusCode}): ${event.nativeEvent.url}`,
+            })
+          }
+          onContentProcessDidTerminate={() =>
+            props.onEvent?.({ type: 'error', message: 'The WebView content process terminated' })
+          }
           onShouldStartLoadWithRequest={(request) => {
             if (
               request.url === 'about:blank' ||
@@ -301,7 +318,7 @@ export function buildDocument(props: HopeMetahumanViewProps): string {
     <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
     <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src ${escapeAttribute(sdkOrigin)} 'nonce-hope-native'; connect-src https: http: wss: ws:; img-src data: blob: ${assetOrigins.map(escapeAttribute).join(' ')}; media-src blob: ${assetOrigins.map(escapeAttribute).join(' ')}; worker-src blob:; style-src 'unsafe-inline'">
     <style>html,body,hope-metahuman{display:block;width:100%;height:100%;margin:0;overflow:hidden;background:transparent}</style>
-    <script id="hope-sdk" type="module" src="${escapeAttribute(sdkUrl)}"></script>
+    <script id="hope-sdk" type="module" crossorigin="anonymous" src="${escapeAttribute(sdkUrl)}"></script>
   </head>
   <body>
     <hope-metahuman
@@ -313,8 +330,33 @@ export function buildDocument(props: HopeMetahumanViewProps): string {
         const send = (message) => window.ReactNativeWebView.postMessage(JSON.stringify(message));
         const element = document.querySelector('hope-metahuman');
 
-        document.querySelector('#hope-sdk').addEventListener('error', () =>
-          send({ type: 'event', event: { type: 'error', message: 'The HOPE Metahuman SDK bundle could not be loaded' } }),
+        window.addEventListener('error', (event) => {
+          const location = event.filename
+            ? ' (' + event.filename + ':' + event.lineno + ':' + event.colno + ')'
+            : '';
+          send({
+            type: 'event',
+            event: { type: 'error', message: (event.message || 'WebView script error') + location },
+          });
+        });
+        window.addEventListener('unhandledrejection', (event) => {
+          const reason = event.reason;
+          send({
+            type: 'event',
+            event: {
+              type: 'error',
+              message: reason && reason.message ? reason.message : String(reason),
+            },
+          });
+        });
+        document.querySelector('#hope-sdk').addEventListener('error', (event) =>
+          send({
+            type: 'event',
+            event: {
+              type: 'error',
+              message: event.message || 'The HOPE Metahuman SDK bundle could not be loaded',
+            },
+          }),
         );
 
         window.__hopeReceive = (message) => {

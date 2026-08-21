@@ -13,7 +13,7 @@ The fastest way to a working page, and the right choice for a public website:
 ```html
 <script
   type="module"
-  src="https://cdn.hope-lms.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
+  src="https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
 ></script>
 
 <hope-metahuman
@@ -39,14 +39,14 @@ production page is not a convenience.
 ### Subresource integrity
 
 Every published version has an SRI hash at
-`https://cdn.hope-lms.app/sdk/v0.1.4/hope-metahuman-embed.standalone.js.sri`.
+`https://cdn.svc.hopemtp.app/sdk/v0.1.4/hope-metahuman-embed.standalone.js.sri`.
 Pin an exact version and use it if you want the browser to reject a bundle whose
 bytes have changed:
 
 ```html
 <script
   type="module"
-  src="https://cdn.hope-lms.app/sdk/v0.1.4/hope-metahuman-embed.standalone.js"
+  src="https://cdn.svc.hopemtp.app/sdk/v0.1.4/hope-metahuman-embed.standalone.js"
   integrity="sha384-…"
   crossorigin="anonymous"
 ></script>
@@ -128,7 +128,7 @@ worker-src 'self' blob:;
 From the CDN, add its origin to `script-src`:
 
 ```
-script-src 'self' https://cdn.hope-lms.app;
+script-src 'self' https://cdn.svc.hopemtp.app;
 ```
 
 `worker-src blob:` is required either way: microphone capture runs in an
@@ -147,7 +147,7 @@ deployment operator for its stable media origin rather than allowing all
 ```bash
 # Recompute the hash and compare against the published value
 openssl dgst -sha384 -binary hope-metahuman-embed.standalone.js | openssl base64 -A
-curl -s https://cdn.hope-lms.app/sdk/v0.1.4/hope-metahuman-embed.standalone.js.sri
+curl -s https://cdn.svc.hopemtp.app/sdk/v0.1.4/hope-metahuman-embed.standalone.js.sri
 ```
 
 `pnpm vendor` performs this check for you and deletes the download on mismatch.

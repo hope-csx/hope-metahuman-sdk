@@ -6,7 +6,7 @@ SCOPE: This licence covers the contents of this repository — the example
 applications, documentation, and tooling. It does NOT cover the HOPE Metahuman
 SDK bundles (@hope-metahuman/sdk, @hope-metahuman/avatar-three,
 @hope-metahuman/embed, and the browser bundles served from
-https://cdn.hope-lms.app/sdk/), which are proprietary, are not distributed in
+https://cdn.svc.hopemtp.app/sdk/), which are proprietary, are not distributed in
 this repository, and require a commercial licence. See NOTICE.md.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy

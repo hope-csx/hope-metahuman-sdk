@@ -26,7 +26,7 @@
  * need the bytes to be identical on every load.
  */
 const SDK_VERSION = 'v0.1';
-const CDN_ORIGIN = 'https://cdn.hope-lms.app';
+const CDN_ORIGIN = 'https://cdn.svc.hopemtp.app';
 
 const LOCAL_URL = './vendor/hope-metahuman-embed.standalone.js';
 const CDN_URL = `${CDN_ORIGIN}/sdk/${SDK_VERSION}/hope-metahuman-embed.standalone.js`;

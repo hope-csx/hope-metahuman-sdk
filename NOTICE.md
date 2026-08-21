@@ -21,12 +21,12 @@ terms in [`LICENSE`](LICENSE) are the whole of the obligation.
 
 The SDK itself is proprietary and is deliberately absent here:
 
-| Artifact                             | Distribution                    |
-| ------------------------------------ | ------------------------------- |
-| `@hope-metahuman/sdk`                | GitHub Packages (restricted)    |
-| `@hope-metahuman/avatar-three`       | GitHub Packages (restricted)    |
-| `@hope-metahuman/embed`              | GitHub Packages (restricted)    |
-| `hope-metahuman-embed.standalone.js` | `https://cdn.hope-lms.app/sdk/` |
+| Artifact                             | Distribution                       |
+| ------------------------------------ | ---------------------------------- |
+| `@hope-metahuman/sdk`                | GitHub Packages (restricted)       |
+| `@hope-metahuman/avatar-three`       | GitHub Packages (restricted)       |
+| `@hope-metahuman/embed`              | GitHub Packages (restricted)       |
+| `hope-metahuman-embed.standalone.js` | `https://cdn.svc.hopemtp.app/sdk/` |
 
 These are built from a private repository, shipped minified and obfuscated, and
 licensed only under a commercial agreement with CornerstoneX. Using them

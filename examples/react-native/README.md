@@ -28,6 +28,12 @@ Fill in `.env` first. Use a development build (`expo run:*`), not Expo Go:
 microphone/WebRTC permission settings are native configuration and need to be
 built into the app.
 
+On Android, the npm `react-native-webview` version and the browser engine are
+separate. The engine is supplied by Android System WebView (or Chrome), so keep
+that system component updated in the emulator or device. The CDN bundle targets
+Chromium 66, the first release with the AudioWorklet support used by the SDK.
+Older engines cannot run the audio path and should be upgraded.
+
 The URLs loaded inside the view must be HTTPS on a device. `localhost` means
 the phone itself, not your workstation. During development, use a reachable LAN
 address with a trusted certificate or a tunnel.

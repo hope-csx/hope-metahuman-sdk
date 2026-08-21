@@ -53,7 +53,7 @@ Each one will say so here.
 
 This repository contains **no SDK source code**. The SDK is proprietary and
 commercially licensed; it is built from a private repository and delivered as a
-minified, obfuscated bundle from `cdn.hope-lms.app` or GitHub Packages. See
+minified, obfuscated bundle from `cdn.svc.hopemtp.app` or GitHub Packages. See
 [NOTICE.md](NOTICE.md).
 
 No 3D avatar models are distributed here. Bring your own ARKit-compatible GLB,

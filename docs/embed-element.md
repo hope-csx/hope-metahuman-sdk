@@ -15,7 +15,7 @@ entire integration — no import map, nothing else to load:
 ```html
 <script
   type="module"
-  src="https://cdn.hope-lms.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
+  src="https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js"
 ></script>
 
 <hope-metahuman
@@ -51,14 +51,14 @@ A complete working page is in
 
 ### Connection
 
-| Attribute        | Required | Description                                              |
-| ---------------- | -------- | -------------------------------------------------------- |
-| `base-url`       | yes      | Origin of your HOPE Metahuman Service deployment         |
-| `token-endpoint` | —        | URL on your backend returning `{ token, expiresIn }`     |
-| `token`          | —        | A machine token you already have. Expires in ten minutes |
+| Attribute        | Required | Description                                                                                      |
+| ---------------- | -------- | ------------------------------------------------------------------------------------------------ |
+| `base-url`       | yes      | Origin of your HOPE Metahuman Service deployment                                                 |
+| `token-endpoint` | —        | URL on your backend returning `{ token, expiresIn }`                                             |
+| `token`          | —        | A machine token you already have. Expires in ten minutes                                         |
 | `voice-id`       | —        | Voice for an ad-hoc session. Omit when `metahuman-id` is set — the Metahuman already has a voice |
-| `voice-model`    | —        | Synthesis model. Defaults to `sonic-3`                   |
-| `auth-mode`      | —        | `cookie` only for a same-site signed-in application      |
+| `voice-model`    | —        | Synthesis model. Defaults to `sonic-3`                                                           |
+| `auth-mode`      | —        | `cookie` only for a same-site signed-in application                                              |
 
 Supply exactly one credential source. `token-endpoint` is the right answer for
 anything you deploy; see [`examples/token-server`](../examples/token-server) for
@@ -87,14 +87,14 @@ settings panel.
 
 ### Conversation
 
-| Attribute        | Default   | Description                                        |
-| ---------------- | --------- | -------------------------------------------------- |
-| `session-id`     | generated | Persist to resume a conversation across page loads |
+| Attribute        | Default   | Description                                                       |
+| ---------------- | --------- | ----------------------------------------------------------------- |
+| `session-id`     | generated | Persist to resume a conversation across page loads                |
 | `metahuman-id`   | —         | Tenant Metahuman. Resolves workflow, persona, language, and voice |
-| `metahuman-name` | —         | The persona's own name                             |
-| `user-name`      | —         | Name of the person speaking                        |
-| `language`       | `en-US`   | BCP-47 tag for transcription and replies           |
-| `archetype-id`   | `3`       | Behavioural persona, 1–8                           |
+| `metahuman-name` | —         | The persona's own name                                            |
+| `user-name`      | —         | Name of the person speaking                                       |
+| `language`       | `en-US`   | BCP-47 tag for transcription and replies                          |
+| `archetype-id`   | `3`       | Behavioural persona, 1–8                                          |
 
 ### Appearance
 

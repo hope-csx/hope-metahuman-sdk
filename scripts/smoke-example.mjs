@@ -183,7 +183,7 @@ try {
 
   // Keep the run offline and deterministic. Without this, "the bundle is
   // missing" would depend on whether the machine can reach the CDN.
-  await page.route('**://cdn.hope-lms.app/**', (route) => route.abort());
+  await page.route('**://cdn.svc.hopemtp.app/**', (route) => route.abort());
 
   const consoleErrors = [];
   page.on('console', (message) => {

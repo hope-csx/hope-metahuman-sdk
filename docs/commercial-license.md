@@ -9,7 +9,7 @@ This licence covers the compiled artifacts distributed as:
 
 - the npm packages `@hope-metahuman/sdk`, `@hope-metahuman/avatar-three`, and
   `@hope-metahuman/embed`;
-- the browser bundles served from `https://cdn.hope-lms.app/sdk/`;
+- the browser bundles served from `https://cdn.svc.hopemtp.app/sdk/`;
 - any archive of those artifacts obtained from CornerstoneX.
 
 It does **not** cover the contents of the public

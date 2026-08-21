@@ -29,7 +29,7 @@ In scope, and reportable here:
 - the examples, documentation, and tooling in this repository;
 - the SDK packages and browser bundles (`@hope-metahuman/sdk`,
   `@hope-metahuman/avatar-three`, `@hope-metahuman/embed`, and the bundles served
-  from `cdn.hope-lms.app`). These are built from a private repository, so we will
+  from `cdn.svc.hopemtp.app`). These are built from a private repository, so we will
   fix them there and publish a new release — please still report them here, or
   by email.
 
