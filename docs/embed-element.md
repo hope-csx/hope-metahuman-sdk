@@ -115,7 +115,6 @@ settings panel.
 | `lock-root-rotation` | on                   | `off` lets the model's idle clip turn the avatar away from the camera      |
 | `mode`               | —                    | `avatar` hides the transcript and input, leaving only the face             |
 | `mic`                | —                    | `off` starts without the microphone; the button still enables it           |
-| `greeting`           | —                    | An opening line shown before the first turn                                |
 | `placeholder`        | `Say something…`     | Text input placeholder                                                     |
 | `start-label`        | `Start conversation` | Start button text                                                          |
 | `start-hint`         |                      | Text under the start button                                                |
@@ -129,6 +128,12 @@ saves the tenant the cost of rendering blendshapes nothing will display.
 When `metahuman-id` is present, the service resolves its trusted workflow,
 persona, language, and voice for every turn. This is the recommended contract
 for tenant-managed Metahumans.
+
+Starting the element also starts a synchronized greeting turn. The service
+chooses one of the Metahuman's configured greetings at random and speaks it
+through either the Standard or Premium avatar. The greeting bubble is created
+only when speech begins. Configure greetings on the Metahuman; there is no
+client-side `greeting` attribute.
 
 ### Orientation and camera
 

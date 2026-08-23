@@ -15,6 +15,13 @@ Each one will say so here.
 
 ### Changed
 
+- Configured Metahumans now choose and speak one random greeting when a session
+  starts. The web element and React Native wrapper handle this automatically;
+  direct integrations call `MetahumanSession.greet()` after mounting their
+  renderer. Greeting transcript text is not emitted until speech begins.
+- Removed the client-only `greeting` attribute/React Native prop. Greetings are
+  tenant configuration and must travel through the synchronized speech turn.
+
 - **The SDK is distributed from the CDN only.** The `@hope-metahuman/*` npm
   packages are retired, and the documentation no longer describes installing
   them. The standalone bundle now exports the whole client API — `MetahumanSession`,

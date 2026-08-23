@@ -44,7 +44,7 @@ agent speech to it.
 
 ```js
 const sessions = new LiveAvatarSessionClient({ baseUrl, tokenProvider });
-const live = await sessions.start(metahumanId);
+const live = await sessions.start(metahumanId, { deferGreeting: true });
 
 const renderer = new LiveAvatarRenderer({
   video: document.querySelector('video'),
@@ -55,6 +55,7 @@ const renderer = new LiveAvatarRenderer({
 await renderer.connect(live);
 
 session.liveAvatarSessionId = live.id;
+await session.greet();
 ```
 
 Only set `liveAvatarSessionId` after the room connection succeeds. While it is
@@ -81,9 +82,10 @@ session.liveAvatarSessionId = null;
 | `ended`        | Idle or completed state                        |
 
 Joining normally completes before the external renderer publishes. A few
-seconds in `waiting` is expected. The service sends a configured greeting (or
-“Hello.”) once the client joins, which brings the video track up without
-requiring the user to speak first.
+seconds in `waiting` is expected. After joining, call `session.greet()` as shown
+above. It chooses a configured greeting at random (or “Hello.”), speaks it on
+the avatar's media track, and emits transcript text only once speaking begins.
+The drop-in element and React Native wrapper perform this sequence automatically.
 
 ## Failure and fallback
 

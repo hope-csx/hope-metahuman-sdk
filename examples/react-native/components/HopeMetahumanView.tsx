@@ -40,7 +40,6 @@ type SharedProps = {
   userName?: string;
   language?: string;
   sessionId?: string;
-  greeting?: string;
   placeholder?: string;
   microphone?: boolean;
   mode?: 'conversation' | 'avatar';
@@ -311,7 +310,6 @@ export function buildDocument(props: HopeMetahumanViewProps): string {
     attribute('user-name', props.userName),
     attribute('language', props.language ?? 'en-US'),
     attribute('session-id', props.sessionId),
-    attribute('greeting', props.greeting),
     attribute('placeholder', props.placeholder),
     props.microphone === false ? 'mic="off"' : '',
     props.mode === 'avatar' ? 'mode="avatar"' : '',

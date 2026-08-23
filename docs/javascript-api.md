@@ -127,6 +127,7 @@ const session = new MetahumanSession({
 
 ```ts
 await session.unlockAudio(); // must be inside a user gesture
+await session.greet(); // after mounting the Standard or Premium renderer
 await session.startListening(); // prompts for microphone permission
 
 await session.send('Hello'); // type instead of speak
@@ -138,6 +139,12 @@ await session.dispose();
 `unlockAudio()` exists because browsers silently discard audio scheduled by a
 page the user has not interacted with. Call it in the same click handler that
 starts the conversation; without it, the first reply plays to nobody.
+
+`greet()` is idempotent for a conversation. It asks the service to select one
+configured greeting at random, speaks it without invoking the LLM or tools, and
+emits the normal `replyToken` and `reply` events. The first transcript token is
+withheld until speech starts. For Premium avatars, connect the renderer and set
+`liveAvatarSessionId` before calling it.
 
 ### Events
 

@@ -242,7 +242,6 @@ try {
         hasCanvas: root?.querySelector('canvas') !== null,
         hasInput: root?.querySelector('input[type="text"]') !== null,
         startLabel: root?.querySelector('button')?.textContent?.trim() ?? '',
-        greeting: root?.textContent?.includes('Configure a connection') ?? false,
       };
     });
 
@@ -251,7 +250,6 @@ try {
     check('the avatar canvas rendered', element.hasCanvas);
     check('the text input rendered', element.hasInput);
     check('the start gate is shown', element.startLabel.length > 0, element.startLabel);
-    check('the greeting is shown', element.greeting);
   }
 
   // The page opens the settings panel by itself only when it has nothing to
