@@ -20,6 +20,7 @@ export type HopeMetahumanEvent =
   | { type: 'ready'; sessionId: string }
   | { type: 'state'; state: SessionState }
   | { type: 'avatar-state'; state: PremiumAvatarState }
+  | { type: 'lease-renewed'; expiresAt: string }
   | { type: 'user-message'; text: string }
   | { type: 'reply'; text: string }
   | { type: 'error'; message: string };
@@ -73,6 +74,8 @@ export type HopeMetahumanViewHandle = {
   interrupt(): void;
   reset(): void;
   setMicrophoneEnabled(enabled: boolean): void;
+  /** Renew the active Premium Avatar lease before its current expiry. */
+  renewLiveAvatar(): void;
   stop(): void;
 };
 
@@ -129,6 +132,7 @@ export const HopeMetahumanView = forwardRef<HopeMetahumanViewHandle, HopeMetahum
         interrupt: () => run('interrupt'),
         reset: () => run('reset'),
         setMicrophoneEnabled: (enabled) => run('setMicrophoneEnabled', enabled),
+        renewLiveAvatar: () => run('renewLiveAvatar'),
         stop: () => run('stop'),
       }),
       [run],
@@ -336,6 +340,26 @@ export function buildDocument(props: HopeMetahumanViewProps): string {
         const pending = new Map();
         const send = (message) => window.ReactNativeWebView.postMessage(JSON.stringify(message));
         const element = document.querySelector('hope-metahuman');
+        let liveAvatarClientPromise = null;
+
+        const renewLiveAvatar = async () => {
+          const sessionId = element && element.session && element.session.liveAvatarSessionId;
+          if (!sessionId) throw new Error('No active Premium Avatar session to renew');
+          if (!liveAvatarClientPromise) {
+            liveAvatarClientPromise = import(${safeJson(sdkUrl)}).then(({ LiveAvatarSessionClient }) =>
+              new LiveAvatarSessionClient({
+                baseUrl: element.getAttribute('base-url') || '',
+                tokenProvider: element.tokenProvider,
+              }),
+            );
+          }
+          const client = await liveAvatarClientPromise;
+          const lease = await client.renew(sessionId);
+          send({
+            type: 'event',
+            event: { type: 'lease-renewed', expiresAt: lease.expiresAt.toISOString() },
+          });
+        };
 
         window.addEventListener('error', (event) => {
           const location = event.filename
@@ -377,9 +401,9 @@ export function buildDocument(props: HopeMetahumanViewProps): string {
         };
 
         window.__hopeInvoke = (method, argument) => {
-          const fn = element && element[method];
+          const fn = method === 'renewLiveAvatar' ? renewLiveAvatar : element && element[method];
           if (typeof fn !== 'function') return;
-          Promise.resolve(fn.call(element, argument)).catch((error) =>
+          Promise.resolve(method === 'renewLiveAvatar' ? fn() : fn.call(element, argument)).catch((error) =>
             send({ type: 'event', event: { type: 'error', message: error && error.message || String(error) } }),
           );
         };

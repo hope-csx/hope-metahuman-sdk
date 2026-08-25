@@ -224,7 +224,7 @@ el.tools = { go_to_step: async ({ step }) => goToStep(step) }; // see Tool calli
 
 await el.start(); // must be inside a user gesture
 await el.send('Hello'); // resolves when the reply finishes
-el.interrupt(); // cut the current reply short
+await el.interrupt(); // cut the current reply short and flush Premium playback
 await el.setMicrophoneEnabled(true);
 el.reset(); // clear memory and the transcript
 await el.stop(); // tear down, back to the start gate
@@ -236,6 +236,11 @@ el.liveAvatar; // the live Premium renderer, or null on the Standard path
 
 `session` and `avatar` are escape hatches: anything the element does not expose
 as an attribute can be reached through them.
+
+Automatic microphone barge-in happens only after a non-empty committed
+utterance. Noise-only VAD and interim captions remain visible but do not cancel
+the current reply. Expected run cancellation is suppressed by the element and
+does not emit `hope-error`; premature WebSocket closure still does.
 
 ## Events
 
@@ -281,7 +286,9 @@ await el.start();
 
 Assigning after `start()` is also supported and takes effect on the next turn, so
 a page can swap handlers as it navigates. A handler's return value is serialized
-as JSON and given to the agent; throwing tells the agent the tool failed, which
+as JSON and given to the agent unchanged. `{ ok, result }` is not unwrapped, so
+the binding's output schema and any workflow consumer must expect that exact
+shape. Throwing tells the agent the tool failed, which
 beats a silent failure it will report to the user as success. Only the error's
 `message` crosses the wire, never the stack.
 

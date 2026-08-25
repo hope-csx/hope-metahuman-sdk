@@ -148,8 +148,10 @@ Two requirements the host must meet:
 - **A CSP allowing `worker-src blob:`** if you set one, for the audio worklet.
   See [docs/self-hosting.md](../../docs/self-hosting.md#content-security-policy).
 
-Your deployment's `CORS_ORIGIN` must also include the page's origin, or the
-token exchange and the WebSocket upgrade are refused.
+The public HOPE API accepts browser requests from every origin; authentication,
+tenant scope, and rate limits remain the boundary. If `tokenEndpoint` is on a
+different origin, that endpoint is part of your application and must allow your
+page through its own CORS policy.
 
 ## What the code shows
 
@@ -178,7 +180,7 @@ agent, or playback.
 | Symptom                                          | Cause                                                                                        |
 | ------------------------------------------------ | -------------------------------------------------------------------------------------------- |
 | A banner says the SDK bundle could not be loaded | Not vendored and the CDN is unreachable. Run `pnpm vendor`, or check egress.                 |
-| "Speech-to-text transport error" immediately     | Bad base URL, expired token, or the origin is not in `CORS_ORIGIN`                           |
+| "Speech-to-text transport error" immediately     | Bad base URL, expired token, network failure, or a restrictive page CSP                      |
 | "Agent stream run failed" after a message        | The turn reached the service and its agent backend rejected it. Check the deployment's logs. |
 | Microphone button does nothing                   | Not on HTTPS or `localhost`, or permission was denied                                        |
 | Replies arrive as text but silently              | `unlockAudio` needs a user gesture — use the start button, not autostart                     |

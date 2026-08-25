@@ -47,10 +47,10 @@ and import the file from your own tree.
 
 ### Version pinning
 
-| URL form        | Behaviour                                                     |
-| --------------- | ------------------------------------------------------------- |
-| `/sdk/v0.1.4/…` | Exact version. Never changes.                                 |
-| `/sdk/v0.1/…`   | Major.minor track. Picks up patches, never a breaking change. |
+| URL form         | Behaviour                                                     |
+| ---------------- | ------------------------------------------------------------- |
+| `/sdk/v0.1.18/…` | Exact version. Never changes.                                 |
+| `/sdk/v0.1/…`    | Major.minor track. Picks up patches, never a breaking change. |
 
 There is deliberately no `latest`. A silent major upgrade underneath a
 production page is not a convenience.
@@ -58,15 +58,15 @@ production page is not a convenience.
 ### Subresource integrity
 
 Every published version has an SRI hash at
-`https://cdn.svc.hopemtp.app/sdk/v0.1.4/hope-metahuman-embed.standalone.js.sri`.
+`https://cdn.svc.hopemtp.app/sdk/v0.1.18/hope-metahuman-embed.standalone.js.sri`.
 Pin an exact version and use it if you want the browser to reject a bundle whose
 bytes have changed:
 
 ```html
 <script
   type="module"
-  src="https://cdn.svc.hopemtp.app/sdk/v0.1.4/hope-metahuman-embed.standalone.js"
-  integrity="sha384-…"
+  src="https://cdn.svc.hopemtp.app/sdk/v0.1.18/hope-metahuman-embed.standalone.js"
+  integrity="sha384-LD3OFoVgBGVPqEIYWtmSS3ccHKG3E91x/nFdg3iofL9wqqPfJGmM3vxG6MiDQSfa"
   crossorigin="anonymous"
 ></script>
 ```
@@ -88,7 +88,7 @@ Download it with the helper in this repository:
 
 ```bash
 pnpm vendor          # major.minor track
-pnpm vendor 0.1.4    # an exact version
+pnpm vendor 0.1.18   # an exact version
 ```
 
 The download is verified against its published SRI hash and rejected if it does
@@ -114,7 +114,7 @@ the Premium Avatar media client are already inside the file.
 Point the script at a mirror you control with `HOPE_SDK_CDN`:
 
 ```bash
-HOPE_SDK_CDN=https://artifacts.internal.example pnpm vendor 0.1.4
+HOPE_SDK_CDN=https://artifacts.internal.example pnpm vendor 0.1.18
 ```
 
 ## Content-Security-Policy
@@ -152,7 +152,7 @@ deployment operator for its stable media origin rather than allowing all
 ```bash
 # Recompute the hash and compare against the published value
 openssl dgst -sha384 -binary hope-metahuman-embed.standalone.js | openssl base64 -A
-curl -s https://cdn.svc.hopemtp.app/sdk/v0.1.4/hope-metahuman-embed.standalone.js.sri
+curl -s https://cdn.svc.hopemtp.app/sdk/v0.1.18/hope-metahuman-embed.standalone.js.sri
 ```
 
 `pnpm vendor` performs this check for you and deletes the download on mismatch.

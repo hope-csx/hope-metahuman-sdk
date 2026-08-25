@@ -115,8 +115,14 @@ ref.current?.send('Hello');
 ref.current?.interrupt();
 ref.current?.reset();
 ref.current?.setMicrophoneEnabled(false);
+ref.current?.renewLiveAvatar(); // Premium only; call before the current lease expires
 ref.current?.stop();
 ```
+
+Premium renderer sessions use renewable leases. Listen for
+`{ type: 'lease-renewed', expiresAt }`, schedule the next renewal before that
+expiry while the participant is still present, and stop renewing when they
+leave. Renewal cannot revive an expired or ended renderer session.
 
 The built-in **Start conversation** button remains inside the view because the
 audio context must be unlocked by a real user gesture. Do not auto-start it
@@ -126,7 +132,10 @@ from `onLoad`—the first response can otherwise be silent on iOS.
 
 - Self-host and exactly pin the SDK bundle with `sdkUrl` when your deployment
   cannot depend on the CDN.
-- Allow the service and asset origins in the tenant's browser/CORS policy.
+- Allow the SDK, asset, API, and returned media origins in the WebView's CSP and
+  native network policy. HOPE's public API does not require browser-origin
+  registration; only your own cross-origin token endpoint needs an appropriate
+  CORS policy.
 - Keep the token endpoint authenticated and rate-limited.
 - Stop/unmount the component when leaving the screen. Premium renderer time is
   billable; unmount calls the embed teardown and live-session delete path.

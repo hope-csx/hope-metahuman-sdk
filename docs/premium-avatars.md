@@ -44,24 +44,41 @@ agent speech to it.
 
 ```js
 const sessions = new LiveAvatarSessionClient({ baseUrl, tokenProvider });
-const live = await sessions.start(metahumanId, { deferGreeting: true });
+let live = await sessions.start(metahumanId, { deferGreeting: true });
 
 const renderer = new LiveAvatarRenderer({
   video: document.querySelector('video'),
   createRoom: createLivekitRoom,
   onStateChange: (state) => setStatus(state),
-  onSpeakingChange: (speaking) => setSpeaking(speaking),
+  onSpeakingChange: (speaking) => session.setLiveAvatarSpeaking(speaking),
 });
 await renderer.connect(live);
 
 session.liveAvatarSessionId = live.id;
-await session.greet();
+session.liveAvatarPlaybackController = sessions;
+const mediaReady = renderer.waitForMedia();
+const greeting = session.greet();
+await Promise.all([mediaReady, greeting]);
 ```
 
 Only set `liveAvatarSessionId` after the room connection succeeds. While it is
 set, each agent run announces `audioTransport: 'live-avatar'` and sends no
 binary audio frames: the avatar's media track carries the voice. Playing local
 audio too would make every reply audible twice.
+
+Room connection and media readiness are intentionally separate. Some providers
+do not publish video or audio until the greeting begins, so awaiting media before
+`session.greet()` creates a deadlock. Start both concurrently as above.
+`waitForMedia()` has a bounded 30-second timeout and cleans up a media connection
+that never becomes ready.
+
+The playback controller makes Premium barge-in deterministic. A non-empty
+committed participant utterance cancels active avatar playback and waits for the
+renderer to acknowledge the flush before starting the replacement turn. Noise,
+VAD-only `speech_started` signals, and interim transcripts do not interrupt.
+`onSpeakingChange` clears the pending-playback state after a real speaking
+`true` → `false` transition, preventing an unnecessary cancellation after a
+greeting or reply finishes naturally.
 
 Clear the id if the renderer fails so the next turn resumes local PCM playback:
 
@@ -113,6 +130,23 @@ returns:
 The room token may subscribe but cannot publish. It is still a credential:
 never log or persist it, render only the participant named by
 `avatarIdentity`, and discard it when the session ends.
+
+## Renewing the lease
+
+Premium sessions use a renewable lease. Before `live.expiresAt`, renew only
+while the participant is still present, then schedule again from the returned
+expiry:
+
+```js
+live = await sessions.renew(live.id);
+scheduleRenewalBefore(live.expiresAt);
+```
+
+Renewal retains the existing session id, renderer, and room. Its fresh viewer
+token is available if the media connection later needs to be rebuilt. It cannot
+revive an expired or ended session; start a new one in that case. Renewal also
+does not replace teardown—stop renewing when the participant leaves and call
+`end()` promptly because renderer time is billable.
 
 ## Teardown
 

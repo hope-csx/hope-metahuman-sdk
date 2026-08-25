@@ -7,6 +7,9 @@ guides, and the API reference for the **HOPE Metahuman Service** SDK.
 [![License: MIT](https://img.shields.io/badge/Repository-MIT-blue.svg)](./LICENSE)
 [![SDK: Commercial](https://img.shields.io/badge/SDK%20bundles-Commercial-orange.svg)](./NOTICE.md)
 
+The current immutable SDK release documented here is **v0.1.18**. The
+`/sdk/v0.1/` URL remains the patch-updating track.
+
 ```html
 <script
   type="module"
@@ -63,6 +66,7 @@ rather than a separate thing to install:
 | `MachineTokenProvider`, `TokenEndpointProvider` | Authentication.                                                                                   |
 | `AvatarRenderer`, `FaceController`              | Three.js rendering: loads a GLB, drives its morph targets, animates blink and gaze.               |
 | `loadLiveAvatar()`                              | Premium Avatar WebRTC renderer, fetched on demand.                                                |
+| `LiveAvatarSessionClient`                       | Premium session start, playback cancellation, lease renewal, and teardown.                        |
 
 Choose by how much control you want:
 

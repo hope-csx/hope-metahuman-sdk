@@ -29,7 +29,9 @@ export default function HomeScreen() {
   const onEvent = (event: HopeMetahumanEvent) => {
     if (event.type === 'state') setStatus(event.state);
     else if (event.type === 'avatar-state') setStatus(`Premium avatar: ${event.state}`);
-    else if (event.type === 'error') setStatus(event.message);
+    else if (event.type === 'lease-renewed') {
+      setStatus(`Premium lease renewed until ${new Date(event.expiresAt).toLocaleTimeString()}`);
+    } else if (event.type === 'error') setStatus(event.message);
   };
 
   const shared = {

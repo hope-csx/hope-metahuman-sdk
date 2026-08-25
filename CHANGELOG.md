@@ -15,6 +15,18 @@ Each one will say so here.
 
 ### Changed
 
+- Synchronized the public guides and examples through SDK `v0.1.18`: expected
+  `RunCancelledError` handling, committed-utterance barge-in with acknowledged
+  Premium playback cancellation, deadlock-free room/media startup, natural
+  speaking completion, stale media-track protection, and renewable Premium
+  Avatar leases.
+- Corrected public API CORS guidance. HOPE accepts requests from every browser
+  origin when they carry valid credentials; an application's own cross-origin
+  token endpoint still controls its CORS policy.
+- Clarified that client-tool results are passed through unchanged rather than
+  unwrapped from shapes such as `{ ok, result }`.
+- Exact-version and SRI examples now pin immutable SDK `v0.1.18`.
+
 - Configured Metahumans now choose and speak one random greeting when a session
   starts. The web element and React Native wrapper handle this automatically;
   direct integrations call `MetahumanSession.greet()` after mounting their
@@ -51,7 +63,8 @@ Each one will say so here.
   [`docs/javascript-api.md`](docs/javascript-api.md#tool-calling).
 - **`examples/react-native`** — an Expo application and reusable typed
   `HopeMetahumanView` supporting Standard GLB and Premium live-video
-  Metahumans, native token retrieval, event forwarding, and imperative controls.
+  Metahumans, native token retrieval, event forwarding, imperative controls,
+  and explicit Premium lease renewal.
 - **Premium Avatar documentation** covering live-session creation, WebRTC
   rendering, audio routing, fallback, and billable-session teardown.
 

@@ -70,8 +70,9 @@ through your server adds latency to a latency-sensitive path.
 ## Deploying it
 
 Serve over HTTPS: browsers refuse microphone access outside a secure context.
-Your deployment's `CORS_ORIGIN` must include the page's origin, or the
-WebSocket upgrade is refused.
+The public HOPE API accepts browser requests from every origin and does not
+require origin registration. Authentication, tenant scope, and rate limits
+remain in force.
 
 If your front end is hosted separately — a static host, a CDN, a different
 domain — this endpoint needs CORS of its own, and the SDK needs
@@ -99,4 +100,5 @@ Keep three properties whatever you build it in:
   own session check; without it the endpoint mints tokens for anyone.
 - **Cache the token and re-request it before it expires**, rather than
   exchanging on every page load. Treat the expiry as advisory and refresh
-  early — a token that expires mid-conversation ends the session.
+  early. The SDK's provider fetches a fresh token for subsequent connections;
+  a directly supplied static token must be replaced by its caller.

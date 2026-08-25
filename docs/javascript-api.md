@@ -131,7 +131,7 @@ await session.greet(); // after mounting the Standard or Premium renderer
 await session.startListening(); // prompts for microphone permission
 
 await session.send('Hello'); // type instead of speak
-session.interrupt(); // cut the reply short
+await session.interrupt(); // cut the reply short; Premium waits for playback flush
 await session.stopListening();
 await session.dispose();
 ```
@@ -210,7 +210,9 @@ const session = new MetahumanSession({
 
 Handlers are offered on every turn, so assigning them here means one is in place
 for the first turn — including a turn the user starts by speaking. The return
-value is serialized as JSON and given to the agent. Throwing is a supported
+value is serialized as JSON and given to the agent unchanged. The SDK does not
+unwrap conventions such as `{ ok, result }`; the tool's declared output schema
+and any workflow consuming the result must match that exact shape. Throwing is a supported
 outcome: the agent is told the tool failed and can say so, which beats a silent
 failure it reports as success. Only the error's `message` crosses the wire, never
 the stack.
@@ -350,6 +352,11 @@ Handlers here are scoped to one run, so a conversation must supply them on every
 turn. Prefer [`MetahumanSession`](#tool-calling), which forwards one set to every
 turn and leaves no window in which a call arrives unhandled.
 
+`run.cancel()` rejects `run.completed` with `RunCancelledError`. That is an
+expected local cancellation, not a transport failure. A socket that closes
+before completion without being cancelled still rejects with
+`ConnectionClosedError`.
+
 ## Premium Avatar sessions
 
 `LiveAvatarSessionClient` starts and ends the service-side renderer used by a
@@ -359,10 +366,21 @@ Premium Avatar. Its token provider needs the `agent.stream` scope.
 import { LiveAvatarSessionClient } from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
 
 const liveAvatars = new LiveAvatarSessionClient({ baseUrl, tokenProvider });
-const live = await liveAvatars.start(metahumanId);
+let live = await liveAvatars.start(metahumanId, { deferGreeting: true });
 
-// Connect live.url/live.token with the renderer from loadLiveAvatar() first.
+// Join the room first. Do not wait for media before starting the greeting.
+await renderer.connect(live);
 session.liveAvatarSessionId = live.id;
+session.liveAvatarPlaybackController = liveAvatars;
+const mediaReady = renderer.waitForMedia();
+const greeting = session.greet();
+await Promise.all([mediaReady, greeting]);
+
+// Renew while the participant is present, before the returned expiry.
+live = await liveAvatars.renew(live.id);
+
+// Direct integrations flush Premium playback before a replacement turn.
+await liveAvatars.cancelPlayback(live.id);
 
 // On teardown: release billable renderer capacity promptly.
 await liveAvatars.end(live.id);
@@ -370,7 +388,11 @@ await liveAvatars.end(live.id);
 
 The returned object contains `id`, `metahumanId`, `url`, `token`, `roomName`,
 `avatarIdentity`, and `expiresAt`. The room token is subscribe-only but remains
-a credential: keep it in memory and do not log it. `409` means the selected
+a credential: keep it in memory and do not log it. `renew(id)` preserves the
+session and renderer while returning a new `expiresAt` and viewer token. Renew
+only while the participant is present, schedule again from that expiry, and
+still call `end(id)` promptly at teardown. An expired or ended session cannot
+be renewed. `409` means the selected
 Metahuman is Standard; `503` means live rendering is unavailable. Both should
 fall back to a poster with local audio. See
 [`premium-avatars.md`](./premium-avatars.md) for the full lifecycle.
@@ -410,8 +432,9 @@ no matching on message text.
 | ----------------------- | ------------------------------------------------------------------------------ | --------------------- |
 | `ConfigurationError`    | Invalid options — a malformed URL, an oversized field. Thrown before any I/O   |                       |
 | `AuthenticationError`   | Token acquisition or the upgrade was rejected                                  | `status`, `retryable` |
-| `ServiceRequestError`   | A REST request such as live-session start/end failed                           | `status`, `retryable` |
-| `ConnectionClosedError` | The socket closed before the operation finished                                | `closeCode`           |
+| `ServiceRequestError`   | A REST request such as live-session start/end/renew failed                     | `status`, `retryable` |
+| `RunCancelledError`     | `AgentStreamRun.cancel()` intentionally stopped the run                        |                       |
+| `ConnectionClosedError` | The socket closed before completion without expected cancellation              | `closeCode`           |
 | `StreamError`           | The server reported a failure mid-stream                                       | `code`                |
 | `ProtocolError`         | A frame did not match the contract — usually an SDK too old for the deployment |                       |
 | `MediaError`            | Microphone access or audio playback was refused                                |                       |
