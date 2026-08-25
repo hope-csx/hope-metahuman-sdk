@@ -51,6 +51,17 @@ Each one will say so here.
 
 ### Added
 
+- Documented native Swift SDK v0.1.0 for iOS and macOS in
+  [docs/swift-api.md](./docs/swift-api.md): the `HopeMetahuman` package
+  (session, protocol clients, token providers, native audio, SceneKit
+  rendering, SwiftUI embed view) and the `HopeMetahumanLive` package for
+  Premium live avatars over LiveKit. It speaks the same wire protocol as the
+  browser SDK and is delivered as a checksum-verified commercial source
+  archive, separately versioned from the browser bundle.
+- Added a worked native iOS example under
+  [examples/ios-swift](./examples/ios-swift/): a single-file SwiftUI app using
+  `HopeMetahumanView` plus controller-driven custom chrome.
+
 - **Tool calling documentation for the session and the element.** Handlers are no
   longer an `AgentStreamClient`-only option: `MetahumanSession` takes a `tools`
   map and forwards it to every turn, and `<hope-metahuman>` exposes a `tools`

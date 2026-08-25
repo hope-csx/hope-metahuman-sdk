@@ -78,9 +78,13 @@ Choose by how much control you want:
   own, and read the blendshape buffer yourself.
 - **A React Native application** → copy the typed
   [`HopeMetahumanView`](./examples/react-native/components/HopeMetahumanView.tsx).
+- **A native iOS or macOS application** → the `HopeMetahuman` Swift package:
+  the same protocol with native audio and SceneKit rendering, no WebView. See
+  [docs/swift-api.md](./docs/swift-api.md).
 
 React Native is available today through the reusable WebView component in this
-repository; a fully native audio/rendering package remains on the roadmap.
+repository; a fully native React Native audio/rendering package remains on the
+roadmap.
 
 ## Getting the SDK
 
@@ -247,6 +251,8 @@ server closes when the reply ends. Multi-turn memory comes from reusing a
 | Running the static example                   | [examples/static-chat/README.md](./examples/static-chat/README.md)   |
 | A token endpoint you can copy                | [examples/token-server/README.md](./examples/token-server/README.md) |
 | React Native Standard/Premium component      | [examples/react-native/README.md](./examples/react-native/README.md) |
+| Native Swift SDK for iOS and macOS           | [docs/swift-api.md](./docs/swift-api.md)                             |
+| Native SwiftUI chat example                  | [examples/ios-swift/README.md](./examples/ios-swift/README.md)       |
 | Service protocol reference                   | Your deployment's docs site                                          |
 
 The CDN bundle does not carry TypeScript declarations, so the pages above are
@@ -321,6 +327,8 @@ Available now:
 - `<hope-metahuman>` custom element for static sites
 - Live Premium Avatar sessions and WebRTC rendering
 - React Native Standard/Premium example and reusable component
+- Native Swift SDK for iOS and macOS — `HopeMetahuman`, with Premium avatars
+  in `HopeMetahumanLive` ([docs/swift-api.md](./docs/swift-api.md))
 
 Planned:
 
@@ -329,7 +337,7 @@ Planned:
 - `@hope-metahuman/angular` — a component and injectable service
 - `@hope-metahuman/react-native` — fully native audio capture/playback and
   rendering (the current component uses the supported browser SDK in a WebView)
-- Native Swift and Kotlin clients
+- Native Kotlin client
 - Worked examples for each, in this repository
 
 Each new package will follow the same split: the implementation ships as a
