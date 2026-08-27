@@ -16,7 +16,7 @@ What it shows:
 ## What it needs
 
 - Xcode 16+, an iOS 16+ device or simulator (a device for the microphone).
-- The `HopeMetahumanSwift-v0.1.0.zip` licensed release archive, checksum
+- The `HopeMetahumanSwift-v0.1.1.zip` licensed release archive, checksum
   verified and extracted with both package directories kept together. See
   [docs/swift-api.md](../../docs/swift-api.md).
 - A token endpoint on your backend.

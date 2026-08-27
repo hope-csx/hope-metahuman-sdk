@@ -25,11 +25,11 @@ Info.plist for anything that listens.
 
 ## Installation
 
-Obtain `HopeMetahumanSwift-v0.1.0.zip` and its adjacent `.sha256` file through
+Obtain `HopeMetahumanSwift-v0.1.1.zip` and its adjacent `.sha256` file through
 your licensed distribution channel. Verify the archive before extracting it:
 
 ```sh
-shasum -a 256 -c HopeMetahumanSwift-v0.1.0.zip.sha256
+shasum -a 256 -c HopeMetahumanSwift-v0.1.1.zip.sha256
 ```
 
 Keep the two package directories together. In Xcode, choose **File → Add
