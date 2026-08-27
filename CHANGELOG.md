@@ -32,6 +32,15 @@ Each one will say so here.
 
 ### Changed
 
+- Fixed native iOS Premium and Ultra Premium audio by routing microphone capture
+  through LiveKit's duplex `AVAudioEngine` and suppressing the competing core
+  PCM player with `MetahumanSessionOptions.useLiveAvatarAudio()`.
+- Pinned the native live-avatar package to LiveKit Swift SDK `2.16.0`, replaced
+  async-context lock calls for Swift 6 compatibility, and migrated Bluetooth
+  voice routing from deprecated `allowBluetooth` to `allowBluetoothHFP`.
+- Documented the required native startup order: configure live-avatar audio,
+  create the session, start listening, then start the coordinator/greeting.
+
 - **The tier previously called simply "Premium" is now "Ultra Premium".** This is
   a rename in the product vocabulary, not a change to any wire contract, and
   **no application needs to be updated**. `avatarProvider` and the interaction

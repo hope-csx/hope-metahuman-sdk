@@ -42,3 +42,7 @@ For a live-video Metahuman on either premium tier, add the `HopeMetahumanLive` p
 replace the avatar view with `LiveAvatarCoordinator` +
 `LiveAvatarVideoView` — the coordinator section of
 [docs/swift-api.md](../../docs/swift-api.md) shows the exact wiring.
+Before constructing the session, call `options.useLiveAvatarAudio()`, then call
+`session.startListening()` before `coordinator.start(...)`. This is required on
+iOS so LiveKit 2.16.0 owns the single audio I/O unit in duplex mode; using the
+core `PcmPlayer` or `MicrophoneCapture` alongside it silences Premium playback.

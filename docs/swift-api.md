@@ -267,9 +267,19 @@ _concurrently_ with the media boundary, renew the lease a minute before
 expiry:
 
 ```swift
+import HopeMetahuman
 import HopeMetahumanLive
 
+var options = MetahumanSessionOptions(
+  baseURL: baseURL,
+  tokenProvider: provider,
+  metahumanId: metahumanId
+)
+options.useLiveAvatarAudio()
+let session = try MetahumanSession(options)
+
 let coordinator = LiveAvatarCoordinator(sessionClient: liveClient, session: session)
+try await session.startListening()
 try await coordinator.start(metahumanId: metahumanId)
 // SwiftUI:
 LiveAvatarVideoView(trackPort: coordinator.videoTrack)
@@ -278,6 +288,22 @@ LiveAvatarVideoView(trackPort: coordinator.videoTrack)
 On a live-avatar turn the session plays nothing locally — the avatar's own
 audio track carries the reply — and barge-in covers both planes: the local
 stop is synchronous, the media plane waits for the acknowledged cancel.
+
+The startup order above is required on iOS. The OS exposes one audio I/O unit,
+and LiveKit 2.16's device module plus the core `PcmPlayer` and
+`MicrophoneCapture` are AVAudioEngine-based. `useLiveAvatarAudio()` prevents
+the core session from constructing a competing player and installs
+`LiveKitMicrophoneCapture`, which observes LiveKit's post-processing buffers and
+resamples them to HOPE's 16 kHz PCM contract. Starting listening first makes
+LiveKit's one engine duplex before the greeting requests remote playout.
+
+`HopeMetahumanLive` pins LiveKit Swift SDK exactly to `2.16.0`. Avoid declaring
+a second LiveKit version in the application. Explicit custom player and
+microphone factories are left intact for applications that already provide a
+single unified audio pipeline.
+`LiveAvatarCoordinator.start(...)` also enforces the ordering by starting a
+configured session's microphone when it is not already listening; the explicit
+call in the example keeps permission handling visible at the app boundary.
 
 ## Errors
 

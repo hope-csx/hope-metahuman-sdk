@@ -58,6 +58,31 @@ It starts the renderer, joins its room, routes conversation audio to it, shows
 the poster while it connects, falls back to local audio when needed, and ends
 the billable session when the element is stopped or removed.
 
+## Native Swift on iOS
+
+The licensed `HopeMetahumanLive` SwiftPM package uses the same media lifecycle,
+but its audio device must be configured before the first greeting. Call
+`MetahumanSessionOptions.useLiveAvatarAudio()` before constructing the session.
+The coordinator then ensures LiveKit's microphone side is running before remote
+playout begins, keeping the one iOS audio I/O unit in duplex mode:
+
+```swift
+var options = MetahumanSessionOptions(
+  baseURL: baseURL,
+  tokenProvider: provider,
+  metahumanId: metahumanId
+)
+options.useLiveAvatarAudio()
+let session = try MetahumanSession(options)
+
+let coordinator = LiveAvatarCoordinator(sessionClient: liveClient, session: session)
+try await coordinator.start(metahumanId: metahumanId)
+```
+
+The live package pins LiveKit Swift SDK exactly to `2.16.0`. See the
+[Swift API guide](./swift-api.md#premium-avatars) for explicit permission
+handling and the complete view setup.
+
 ## Direct API
 
 Applications building their own browser interface drive the live renderer
