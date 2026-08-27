@@ -38,7 +38,7 @@ What it shows:
    `tokenEndpoint`, and `metahumanID`, plus `modelURL` for the avatar.
 4. Run on a device, tap **Start conversation**, and talk.
 
-For a Premium live-video Metahuman, add the `HopeMetahumanLive` package and
+For a live-video Metahuman on either premium tier, add the `HopeMetahumanLive` package and
 replace the avatar view with `LiveAvatarCoordinator` +
 `LiveAvatarVideoView` — the coordinator section of
 [docs/swift-api.md](../../docs/swift-api.md) shows the exact wiring.

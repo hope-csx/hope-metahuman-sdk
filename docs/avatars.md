@@ -1,5 +1,10 @@
 # Avatar models
 
+This page is about the Standard 3D tier, the only one that renders on the
+client. A Metahuman on either premium tier arrives as lip-synced video from the
+service, has no GLB, and needs nothing here — see
+[premium-avatars.md](./premium-avatars.md).
+
 No 3D models are distributed in this repository. They are separately licensed
 assets, often with terms that forbid redistribution, and shipping them from a
 public MIT repository would misrepresent what you are allowed to do with them.

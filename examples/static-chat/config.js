@@ -24,10 +24,15 @@ export default {
    */
   tokenEndpoint: '/api/hope/stream-token',
 
-  /** `standard` loads a GLB; `premium` requests live video from the service. */
+  /**
+   * `standard` loads a GLB; `premium` requests live video from the service.
+   *
+   * `premium` covers both live-video tiers — Premium and Ultra Premium. Which
+   * one a Metahuman is on is its own configuration and changes nothing here.
+   */
   avatarKind: 'standard',
 
-  /** Tenant Metahuman ID. Required for Premium; recommended for Standard. */
+  /** Tenant Metahuman ID. Required for `premium`; recommended for `standard`. */
   metahumanId: '',
 
   /**
@@ -42,7 +47,7 @@ export default {
    */
   modelUrl: 'http://localhost:3001/public/models/avatar.glb',
 
-  /** Still and muted preview used while Premium live rendering starts or falls back. */
+  /** Still and muted preview used while premium live rendering starts or falls back. */
   posterUrl: '',
   previewVideoUrl: '',
 

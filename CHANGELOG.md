@@ -13,9 +13,37 @@ Each one will say so here.
 
 ## [Unreleased]
 
+### Added
+
+- **Documented the three Metahuman tiers.** A Metahuman is now Standard 3D,
+  Premium, or Ultra Premium. Standard 3D renders on the client from a GLB, as
+  before; Premium and Ultra Premium are both live video from the service and are
+  **indistinguishable to every SDK on every platform** — same session start,
+  media subscription, barge-in, lease renewal, and teardown.
+- `avatarTier` (`STANDARD_3D` | `PREMIUM` | `ULTRA_PREMIUM`) on the Metahuman
+  resource, for applications that want to label the tier in their own UI.
+- Custom Premium avatars, built from an uploaded portrait. Creating one is
+  tenant administration and has no client-side API; once built, a custom avatar
+  is selected on a Metahuman exactly like a stock one and changes nothing in
+  your integration. See [docs/premium-avatars.md](./docs/premium-avatars.md).
+- Documented tenant-specific avatar access. A tenant may expose only a subset
+  of the three tiers; applications should treat a rejected interaction as a
+  configuration issue rather than selecting a different commercial tier.
+
 ### Changed
 
-- Synchronized the public guides and examples through SDK `v0.1.18`: expected
+- **The tier previously called simply "Premium" is now "Ultra Premium".** This is
+  a rename in the product vocabulary, not a change to any wire contract, and
+  **no application needs to be updated**. `avatarProvider` and the interaction
+  config's `appearance.kind` still report `PREMIUM` for every live-video
+  Metahuman: they describe how to render, not what the tenant is billed for, so
+  existing branches on them remain correct. Tenants already rendering Premium
+  Metahumans are on Ultra Premium and see no change.
+- A `503` from `POST /live-avatar-sessions` is now scoped to the Metahuman's
+  tier — a deployment can be configured or have capacity for one premium tier
+  and not the other — so treat the poster-and-local-audio fallback as
+  per-Metahuman rather than disabling live rendering for the whole deployment.
+- Synchronized the public guides and examples through SDK `v0.1.19`: expected
   `RunCancelledError` handling, committed-utterance barge-in with acknowledged
   Premium playback cancellation, deadlock-free room/media startup, natural
   speaking completion, stale media-track protection, and renewable Premium
@@ -25,7 +53,7 @@ Each one will say so here.
   token endpoint still controls its CORS policy.
 - Clarified that client-tool results are passed through unchanged rather than
   unwrapped from shapes such as `{ ok, result }`.
-- Exact-version and SRI examples now pin immutable SDK `v0.1.18`.
+- Exact-version and SRI examples now pin immutable SDK `v0.1.19`.
 
 - Configured Metahumans now choose and speak one random greeting when a session
   starts. The web element and React Native wrapper handle this automatically;

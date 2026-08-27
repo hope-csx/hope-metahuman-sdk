@@ -3,10 +3,12 @@
 This Expo example puts either kind of HOPE Metahuman in an iOS or Android app
 with the reusable [`HopeMetahumanView`](./components/HopeMetahumanView.tsx):
 
-- **Standard** loads an ARKit-compatible GLB and renders it locally with WebGL,
-  applying the streamed Audio2Face blendshapes against the audio clock.
+- **Standard 3D** loads an ARKit-compatible GLB and renders it locally with
+  WebGL, applying the streamed Audio2Face blendshapes against the audio clock.
 - **Premium** starts a live avatar session and subscribes to its lip-synced
-  WebRTC video and audio. No model is downloaded to the device.
+  WebRTC video and audio. No model is downloaded to the device. This is the
+  path for both premium tiers, Premium and Ultra Premium; the component does
+  not distinguish them.
 
 The component hosts the supported `@hope-metahuman/embed` standalone bundle in
 `react-native-webview`. This is intentional: the current commercial SDK uses
@@ -115,11 +117,11 @@ ref.current?.send('Hello');
 ref.current?.interrupt();
 ref.current?.reset();
 ref.current?.setMicrophoneEnabled(false);
-ref.current?.renewLiveAvatar(); // Premium only; call before the current lease expires
+ref.current?.renewLiveAvatar(); // premium only; call before the current lease expires
 ref.current?.stop();
 ```
 
-Premium renderer sessions use renewable leases. Listen for
+Live renderer sessions use renewable leases. Listen for
 `{ type: 'lease-renewed', expiresAt }`, schedule the next renewal before that
 expiry while the participant is still present, and stop renewing when they
 leave. Renewal cannot revive an expired or ended renderer session.
@@ -138,6 +140,7 @@ from `onLoad`—the first response can otherwise be silent on iOS.
   CORS policy.
 - Keep the token endpoint authenticated and rate-limited.
 - Stop/unmount the component when leaving the screen. Premium renderer time is
-  billable; unmount calls the embed teardown and live-session delete path.
+  billable on both premium tiers; unmount calls the embed teardown and
+  live-session delete path.
 - Test on physical iOS and Android devices. WebGL/WebRTC behavior and
   microphone permission cannot be validated adequately in a unit test.

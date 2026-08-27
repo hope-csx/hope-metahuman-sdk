@@ -1,13 +1,13 @@
 # HOPE Metahuman SDK — examples and documentation
 
-Everything you need to put a talking Standard 3D or Premium live-video
+Everything you need to put a talking Standard 3D or premium live-video
 Metahuman in a web or React Native application: worked examples, integration
 guides, and the API reference for the **HOPE Metahuman Service** SDK.
 
 [![License: MIT](https://img.shields.io/badge/Repository-MIT-blue.svg)](./LICENSE)
 [![SDK: Commercial](https://img.shields.io/badge/SDK%20bundles-Commercial-orange.svg)](./NOTICE.md)
 
-The current immutable SDK release documented here is **v0.1.18**. The
+The current immutable SDK release documented here is **v0.1.19**. The
 `/sdk/v0.1/` URL remains the patch-updating track.
 
 ```html
@@ -49,24 +49,25 @@ See [NOTICE.md](./NOTICE.md) for the precise split, and
 
 No 3D avatar models are distributed here either. Bring your own
 ARKit-compatible GLB, or load a platform-hosted model with your entitlement —
-see [docs/avatars.md](./docs/avatars.md).
+see [docs/avatars.md](./docs/avatars.md). A Metahuman on either premium tier
+needs no model at all; the service renders it as video.
 
 ## One bundle, several ways in
 
 The SDK ships as a single file, `hope-metahuman-embed.standalone.js`. Three.js
-and the Premium Avatar media client are bundled inside it, so a page needs one
+and the premium avatar media client are bundled inside it, so a page needs one
 script tag and no import map. Everything below is an export of that one file
 rather than a separate thing to install:
 
 | Export                                          | What it is                                                                                        |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------- |
-| `<hope-metahuman>`                              | The custom element. Registers itself when the bundle loads. Standard and Premium Metahumans.      |
+| `<hope-metahuman>`                              | The custom element. Registers itself when the bundle loads. Every tier of Metahuman.              |
 | `MetahumanSession`                              | The conversation loop — microphone, transcription, agent turn, speech playback, animation buffer. |
 | `AgentStreamClient`, `SttClient`                | The protocol clients, for one turn or one transcript at a time.                                   |
 | `MachineTokenProvider`, `TokenEndpointProvider` | Authentication.                                                                                   |
 | `AvatarRenderer`, `FaceController`              | Three.js rendering: loads a GLB, drives its morph targets, animates blink and gaze.               |
-| `loadLiveAvatar()`                              | Premium Avatar WebRTC renderer, fetched on demand.                                                |
-| `LiveAvatarSessionClient`                       | Premium session start, playback cancellation, lease renewal, and teardown.                        |
+| `loadLiveAvatar()`                              | Premium avatar WebRTC renderer, fetched on demand. Serves both premium tiers.                     |
+| `LiveAvatarSessionClient`                       | Live session start, playback cancellation, lease renewal, and teardown.                           |
 
 Choose by how much control you want:
 
@@ -165,9 +166,10 @@ skip this step entirely until you have seen the thing work. That is a
 ></hope-metahuman>
 ```
 
-For a Premium Avatar, keep `metahuman-id`, omit `model-url`, and optionally add
+For a premium avatar, keep `metahuman-id`, omit `model-url`, and optionally add
 `poster-url`. The same element starts its live session and displays the
-lip-synced WebRTC stream.
+lip-synced WebRTC stream. That markup is identical on both premium tiers —
+Premium and Ultra Premium — because the client path is the same for both.
 
 ### 3. Or build your own interface
 
@@ -244,13 +246,13 @@ server closes when the reply ends. Multi-turn memory comes from reusing a
 | Element attributes, events, and theming      | [docs/embed-element.md](./docs/embed-element.md)                     |
 | Protocol client API                          | [docs/javascript-api.md](./docs/javascript-api.md)                   |
 | Avatar rendering and the renderer API        | [docs/three-renderer.md](./docs/three-renderer.md)                   |
-| Premium Avatar lifecycle and renderer        | [docs/premium-avatars.md](./docs/premium-avatars.md)                 |
+| Premium tiers, lifecycle, and renderer       | [docs/premium-avatars.md](./docs/premium-avatars.md)                 |
 | Avatar model requirements                    | [docs/avatars.md](./docs/avatars.md)                                 |
 | Obtaining, pinning, and self-hosting the SDK | [docs/self-hosting.md](./docs/self-hosting.md)                       |
 | Commercial licence terms                     | [docs/commercial-license.md](./docs/commercial-license.md)           |
 | Running the static example                   | [examples/static-chat/README.md](./examples/static-chat/README.md)   |
 | A token endpoint you can copy                | [examples/token-server/README.md](./examples/token-server/README.md) |
-| React Native Standard/Premium component      | [examples/react-native/README.md](./examples/react-native/README.md) |
+| React Native standard/premium component      | [examples/react-native/README.md](./examples/react-native/README.md) |
 | Native Swift SDK for iOS and macOS           | [docs/swift-api.md](./docs/swift-api.md)                             |
 | Native SwiftUI chat example                  | [examples/ios-swift/README.md](./examples/ios-swift/README.md)       |
 | Service protocol reference                   | Your deployment's docs site                                          |
@@ -325,9 +327,9 @@ Available now:
 - Browser and Node.js protocol client
 - Three.js avatar rendering
 - `<hope-metahuman>` custom element for static sites
-- Live Premium Avatar sessions and WebRTC rendering
-- React Native Standard/Premium example and reusable component
-- Native Swift SDK for iOS and macOS — `HopeMetahuman`, with Premium avatars
+- Live premium avatar sessions and WebRTC rendering, on both premium tiers
+- React Native standard/premium example and reusable component
+- Native Swift SDK for iOS and macOS — `HopeMetahuman`, with premium avatars
   in `HopeMetahumanLive` ([docs/swift-api.md](./docs/swift-api.md))
 
 Planned:

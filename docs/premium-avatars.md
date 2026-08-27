@@ -1,11 +1,48 @@
-# Premium Avatars
+# Premium avatars
 
-A Standard Metahuman is an ARKit-compatible GLB drawn on the client and driven
-by streamed blendshapes. A Premium Avatar is rendered by the service and
+A Standard 3D Metahuman is an ARKit-compatible GLB drawn on the client and
+driven by streamed blendshapes. A premium avatar is rendered by the service and
 arrives as lip-synced WebRTC video and audio. The agent, workflow, tools,
 transcription, and conversation memory are otherwise the same.
 
-For the shortest integrations, `<hope-metahuman>` selects the complete Premium
+## Two premium tiers, one client path
+
+A Metahuman is configured on one of three tiers. The first renders on the
+client; the other two are live video and are **indistinguishable to this SDK**.
+
+| Tier          | Rendered by              | What the client does                |
+| ------------- | ------------------------ | ----------------------------------- |
+| Standard 3D   | Your page, from a GLB    | Draw morph targets from blendshapes |
+| Premium       | The service (live video) | Subscribe to the media room         |
+| Ultra Premium | The service (live video) | Subscribe to the media room         |
+
+Everything on this page applies to both premium tiers without modification.
+They differ in the upstream renderer the service dispatches to, in appearance
+catalogue, and in metering — none of which is visible on the wire.
+
+Tenants that already render what used to be called simply "Premium" are on
+**Ultra Premium** and need no change: the tier was renamed, not repointed.
+
+If you want to display which tier a Metahuman is on, read `avatarTier`
+(`STANDARD_3D` | `PREMIUM` | `ULTRA_PREMIUM`) from `GET /metahumans/:id`.
+`avatarProvider` and the interaction config's `appearance.kind` are unchanged
+and still report `PREMIUM` for both premium tiers — they describe _how_ to
+render, not what the tenant is billed for, so branching on them stays correct:
+
+```js
+if (metahuman.avatarProvider === 'PREMIUM') {
+  // Live video. Works for Premium and Ultra Premium alike.
+  await startLiveAvatar(metahuman.id);
+}
+```
+
+Avatar access is configured per tenant. Not every tenant is entitled to every
+tier, and the service rejects interactions for a Metahuman whose tier is no
+longer available. Client applications do not choose a substitute tier: show the
+normal unavailable/configuration state and let a tenant administrator move the
+Metahuman to one of the tenant's available tiers.
+
+For the shortest integrations, `<hope-metahuman>` selects the complete premium
 path whenever it has a `metahuman-id` and no `model-url`:
 
 ```html
@@ -72,7 +109,7 @@ do not publish video or audio until the greeting begins, so awaiting media befor
 `waitForMedia()` has a bounded 30-second timeout and cleans up a media connection
 that never becomes ready.
 
-The playback controller makes Premium barge-in deterministic. A non-empty
+The playback controller makes premium barge-in deterministic. A non-empty
 committed participant utterance cancels active avatar playback and waits for the
 renderer to acknowledge the flush before starting the replacement turn. Noise,
 VAD-only `speech_started` signals, and interim transcripts do not interrupt.
@@ -121,11 +158,16 @@ returns:
 }
 ```
 
-- `409` means the Metahuman uses a Standard avatar. Render its GLB instead.
-- `503` means the deployment has no live media plane or has no renderer
-  capacity. Do not retry immediately; show the poster and play local audio.
+- `409` means the Metahuman uses a Standard 3D avatar. Render its GLB instead.
+- `503` means the deployment has no live media plane, or the tier this Metahuman
+  is on is not configured or is out of renderer capacity. Do not retry
+  immediately; show the poster and play local audio.
 - `502` means this renderer start was refused or unreachable. A bounded retry
   can be appropriate before falling back.
+
+A `503` on one tier says nothing about the other. A deployment may be licensed
+for Premium and not Ultra Premium, or the reverse, so treat the fallback as
+per-Metahuman rather than disabling live rendering globally.
 
 The room token may subscribe but cannot publish. It is still a credential:
 never log or persist it, render only the participant named by
@@ -133,7 +175,7 @@ never log or persist it, render only the participant named by
 
 ## Renewing the lease
 
-Premium sessions use a renewable lease. Before `live.expiresAt`, renew only
+Live sessions use a renewable lease. Before `live.expiresAt`, renew only
 while the participant is still present, then schedule again from the returned
 expiry:
 
@@ -150,8 +192,9 @@ does not replace teardown—stop renewing when the participant leaves and call
 
 ## Teardown
 
-Premium renderer time is billed and concurrency is capped. Release it when the
-screen, page, or conversation ends instead of waiting for expiry:
+Renderer time is billed on both premium tiers — at different rates — and
+concurrency is capped. Release it when the screen, page, or conversation ends
+instead of waiting for expiry:
 
 ```js
 await renderer.disconnect();
@@ -163,3 +206,24 @@ await sessions.end(live.id);
 For React Native, use the ready-made component in
 [`examples/react-native`](../examples/react-native), which preserves this
 lifecycle inside a native view.
+
+## Custom avatars
+
+The Premium tier can render an avatar built from a photograph of a real person,
+alongside the stock catalogue. Ultra Premium and Standard 3D are stock-only for
+now.
+
+Creating one is tenant administration rather than client work, so it does not
+appear in this SDK: an operator uploads a portrait in the admin portal, or a
+back-office integration posts one to
+`POST /organizations/:orgId/premium-avatars/custom`. The build is asynchronous
+and takes a few minutes.
+
+Once it reports `READY`, a custom avatar is selectable on a Metahuman exactly
+like a stock one, and nothing on this page changes — the session start, media
+subscription, barge-in, renewal, and teardown are identical. There is no client
+attribute or flag to set, and no way to tell from the media stream that an
+avatar was custom-built.
+
+Your deployment's docs site documents the upload endpoint, the portrait
+requirements, and the polling contract.

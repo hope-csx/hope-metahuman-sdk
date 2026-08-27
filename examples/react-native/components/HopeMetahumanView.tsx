@@ -60,8 +60,12 @@ export type StandardMetahumanProps = SharedProps & {
 };
 
 export type PremiumMetahumanProps = SharedProps & {
+  /**
+   * Live video from the service. Covers both premium tiers — Premium and Ultra
+   * Premium — which are indistinguishable to this component.
+   */
   kind: 'premium';
-  /** Tenant Metahuman configured with a Premium Avatar. */
+  /** Tenant Metahuman configured with a premium avatar. */
   metahumanId: string;
   posterUrl?: string;
   previewVideoUrl?: string;
@@ -74,7 +78,7 @@ export type HopeMetahumanViewHandle = {
   interrupt(): void;
   reset(): void;
   setMicrophoneEnabled(enabled: boolean): void;
-  /** Renew the active Premium Avatar lease before its current expiry. */
+  /** Renew the active premium avatar lease before its current expiry. */
   renewLiveAvatar(): void;
   stop(): void;
 };
@@ -88,8 +92,8 @@ type BridgeMessage =
 /**
  * Hosts the commercial browser embed inside a native view.
  *
- * Standard Metahumans render an ARKit GLB with WebGL. Premium Metahumans start
- * a live avatar session and receive their lip-synced video and audio over
+ * Standard 3D Metahumans render an ARKit GLB with WebGL. Premium Metahumans
+ * start a live avatar session and receive their lip-synced video and audio over
  * WebRTC. The same conversation UI and imperative API work for both.
  *
  * CLIENT tool calling is deliberately not wired up here. The element takes

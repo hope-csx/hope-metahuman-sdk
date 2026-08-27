@@ -118,9 +118,9 @@ settings panel.
 | `placeholder`        | `Say something…`     | Text input placeholder                                                     |
 | `start-label`        | `Start conversation` | Start button text                                                          |
 | `start-hint`         |                      | Text under the start button                                                |
-| `poster-url`         | —                    | Still shown while Premium video starts or falls back                       |
+| `poster-url`         | —                    | Still shown while premium video starts or falls back                       |
 | `preview-video-url`  | —                    | Muted visual fallback when live rendering is unavailable                   |
-| `live-avatar`        | on                   | `off` disables the Premium session attempt                                 |
+| `live-avatar`        | on                   | `off` disables the premium session attempt                                 |
 
 Omitting `model-url` also turns off animation generation server-side, which
 saves the tenant the cost of rendering blendshapes nothing will display.
@@ -131,7 +131,7 @@ for tenant-managed Metahumans.
 
 Starting the element also starts a synchronized greeting turn. The service
 chooses one of the Metahuman's configured greetings at random and speaks it
-through either the Standard or Premium avatar. The greeting bubble is created
+through whichever avatar the Metahuman is configured with. The greeting bubble is created
 only when speech begins. Configure greetings on the Metahuman; there is no
 client-side `greeting` attribute.
 
@@ -173,12 +173,14 @@ document.querySelector('hope-metahuman').cameraOptions = {
 See [three-renderer.md](./three-renderer.md) for the full explanation of why the
 root rotation is dropped.
 
-## Premium Avatars
+## Premium avatars
 
 Give the element a `model-url` for a Standard 3D Metahuman. Give it a
-`metahuman-id` with no `model-url` for a Premium Avatar: it starts a live
+`metahuman-id` with no `model-url` for a premium avatar: it starts a live
 service renderer, subscribes to its video/audio room, and routes each reply to
-the avatar's own lip-synced audio track.
+the avatar's own lip-synced audio track. This is the same markup on both premium
+tiers — the element does not need to know, and cannot tell, whether the
+Metahuman is Premium or Ultra Premium.
 
 ```html
 <hope-metahuman
@@ -191,7 +193,7 @@ the avatar's own lip-synced audio track.
 
 The bundle carries the media client the live path needs, so there is nothing
 extra to load. While the renderer starts, the element shows `poster-url`. A
-Standard Metahuman, a deployment without live rendering, or a failed renderer
+Standard 3D Metahuman, a deployment without live rendering for that tier, or a failed renderer
 degrades to `preview-video-url`/`poster-url` with locally played speech instead
 of ending the conversation. See [premium-avatars.md](./premium-avatars.md).
 
@@ -224,14 +226,14 @@ el.tools = { go_to_step: async ({ step }) => goToStep(step) }; // see Tool calli
 
 await el.start(); // must be inside a user gesture
 await el.send('Hello'); // resolves when the reply finishes
-await el.interrupt(); // cut the current reply short and flush Premium playback
+await el.interrupt(); // cut the current reply short and flush avatar playback
 await el.setMicrophoneEnabled(true);
 el.reset(); // clear memory and the transcript
 await el.stop(); // tear down, back to the start gate
 
 el.session; // the underlying MetahumanSession, or null before start()
 el.avatar; // the underlying AvatarRenderer, or null with no model-url
-el.liveAvatar; // the live Premium renderer, or null on the Standard path
+el.liveAvatar; // the live-video renderer, or null on the Standard 3D path
 ```
 
 `session` and `avatar` are escape hatches: anything the element does not expose

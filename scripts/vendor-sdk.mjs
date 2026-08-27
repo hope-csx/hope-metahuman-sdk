@@ -15,7 +15,7 @@
  *
  * Usage:
  *   pnpm vendor                 # major.minor track, picks up patches
- *   pnpm vendor 0.1.18          # an exact version
+ *   pnpm vendor 0.1.19          # an exact version
  *   HOPE_SDK_CDN=... pnpm vendor  # a mirror you host
  *
  * @license MIT

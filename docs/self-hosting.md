@@ -27,7 +27,7 @@ The fastest way to a working page, and the right choice for a public website:
 ```
 
 That is the whole integration. The standalone bundle embeds its own copy of
-three.js and of the Premium Avatar media client, so there is no import map, no
+three.js and of the premium avatar media client, so there is no import map, no
 separate `three` install, and nothing else to load.
 
 Code that wants the API rather than the element imports from the same URL:
@@ -49,7 +49,7 @@ and import the file from your own tree.
 
 | URL form         | Behaviour                                                     |
 | ---------------- | ------------------------------------------------------------- |
-| `/sdk/v0.1.18/…` | Exact version. Never changes.                                 |
+| `/sdk/v0.1.19/…` | Exact version. Never changes.                                 |
 | `/sdk/v0.1/…`    | Major.minor track. Picks up patches, never a breaking change. |
 
 There is deliberately no `latest`. A silent major upgrade underneath a
@@ -58,15 +58,15 @@ production page is not a convenience.
 ### Subresource integrity
 
 Every published version has an SRI hash at
-`https://cdn.svc.hopemtp.app/sdk/v0.1.18/hope-metahuman-embed.standalone.js.sri`.
+`https://cdn.svc.hopemtp.app/sdk/v0.1.19/hope-metahuman-embed.standalone.js.sri`.
 Pin an exact version and use it if you want the browser to reject a bundle whose
 bytes have changed:
 
 ```html
 <script
   type="module"
-  src="https://cdn.svc.hopemtp.app/sdk/v0.1.18/hope-metahuman-embed.standalone.js"
-  integrity="sha384-LD3OFoVgBGVPqEIYWtmSS3ccHKG3E91x/nFdg3iofL9wqqPfJGmM3vxG6MiDQSfa"
+  src="https://cdn.svc.hopemtp.app/sdk/v0.1.19/hope-metahuman-embed.standalone.js"
+  integrity="sha384-NCNCbAHI/YxvdcoEmnROrbaUw3rCQkmaYvDy2Hp77WeSk7idOgLiwgF4/M6+rYo9"
   crossorigin="anonymous"
 ></script>
 ```
@@ -88,7 +88,7 @@ Download it with the helper in this repository:
 
 ```bash
 pnpm vendor          # major.minor track
-pnpm vendor 0.1.18   # an exact version
+pnpm vendor 0.1.19   # an exact version
 ```
 
 The download is verified against its published SRI hash and rejected if it does
@@ -109,12 +109,12 @@ This is also the route for an application built with a bundler. The file is a
 static asset in your own tree rather than something fetched during the build, so
 a build machine with no egress still produces a working page, and the deployment
 carries the exact bytes you tested. Nothing else needs installing: three.js and
-the Premium Avatar media client are already inside the file.
+the premium avatar media client are already inside the file.
 
 Point the script at a mirror you control with `HOPE_SDK_CDN`:
 
 ```bash
-HOPE_SDK_CDN=https://artifacts.internal.example pnpm vendor 0.1.18
+HOPE_SDK_CDN=https://artifacts.internal.example pnpm vendor 0.1.19
 ```
 
 ## Content-Security-Policy
@@ -142,7 +142,7 @@ worklet file would be a second artifact to host and to keep in step.
 
 The bundle needs neither `unsafe-inline` nor `unsafe-eval`.
 
-Premium Avatars also need the WebSocket media origin returned by
+Premium avatars also need the WebSocket media origin returned by
 `POST /live-avatar-sessions` in `connect-src`, plus `media-src blob:`. Ask the
 deployment operator for its stable media origin rather than allowing all
 `wss:` destinations.
@@ -152,7 +152,7 @@ deployment operator for its stable media origin rather than allowing all
 ```bash
 # Recompute the hash and compare against the published value
 openssl dgst -sha384 -binary hope-metahuman-embed.standalone.js | openssl base64 -A
-curl -s https://cdn.svc.hopemtp.app/sdk/v0.1.18/hope-metahuman-embed.standalone.js.sri
+curl -s https://cdn.svc.hopemtp.app/sdk/v0.1.19/hope-metahuman-embed.standalone.js.sri
 ```
 
 `pnpm vendor` performs this check for you and deletes the download on mismatch.

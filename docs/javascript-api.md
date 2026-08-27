@@ -127,11 +127,11 @@ const session = new MetahumanSession({
 
 ```ts
 await session.unlockAudio(); // must be inside a user gesture
-await session.greet(); // after mounting the Standard or Premium renderer
+await session.greet(); // after mounting the GLB or live-video renderer
 await session.startListening(); // prompts for microphone permission
 
 await session.send('Hello'); // type instead of speak
-await session.interrupt(); // cut the reply short; Premium waits for playback flush
+await session.interrupt(); // cut the reply short; live video waits for playback flush
 await session.stopListening();
 await session.dispose();
 ```
@@ -143,7 +143,7 @@ starts the conversation; without it, the first reply plays to nobody.
 `greet()` is idempotent for a conversation. It asks the service to select one
 configured greeting at random, speaks it without invoking the LLM or tools, and
 emits the normal `replyToken` and `reply` events. The first transcript token is
-withheld until speech starts. For Premium avatars, connect the renderer and set
+withheld until speech starts. For premium avatars, connect the renderer and set
 `liveAvatarSessionId` before calling it.
 
 ### Events
@@ -157,7 +157,7 @@ withheld until speech starts. For Premium avatars, connect the renderer and set
 | `reply`          | `string`                                            | The complete reply, once the turn finishes                   |
 | `micLevel`       | `number`                                            | Amplitude in `[0, 1]`, for a level meter                     |
 | `agentEvent`     | `{ event, data }`                                   | Non-fatal signals such as `a2f3d_error`                      |
-| `audioTransport` | `'binary' \| 'live-avatar'`                         | Whether speech is local PCM or the Premium Avatar track      |
+| `audioTransport` | `'binary' \| 'live-avatar'`                         | Whether speech is local PCM or the premium avatar track      |
 | `toolsAccepted`  | `readonly string[]`                                 | Which offered tools the service accepted; see below          |
 | `tool`           | `{ name, ok }`                                      | A tool call finished and was answered                        |
 | `error`          | `Error`                                             | The session stays usable unless `state` says otherwise       |
@@ -357,10 +357,12 @@ expected local cancellation, not a transport failure. A socket that closes
 before completion without being cancelled still rejects with
 `ConnectionClosedError`.
 
-## Premium Avatar sessions
+## Premium avatar sessions
 
 `LiveAvatarSessionClient` starts and ends the service-side renderer used by a
-Premium Avatar. Its token provider needs the `agent.stream` scope.
+premium avatar. Its token provider needs the `agent.stream` scope. The client is
+tier-agnostic: a Metahuman on either the Premium or the Ultra Premium tier is
+started, renewed, and ended by exactly the calls below.
 
 ```js
 import { LiveAvatarSessionClient } from 'https://cdn.svc.hopemtp.app/sdk/v0.1/hope-metahuman-embed.standalone.js';
@@ -379,7 +381,7 @@ await Promise.all([mediaReady, greeting]);
 // Renew while the participant is present, before the returned expiry.
 live = await liveAvatars.renew(live.id);
 
-// Direct integrations flush Premium playback before a replacement turn.
+// Direct integrations flush avatar playback before a replacement turn.
 await liveAvatars.cancelPlayback(live.id);
 
 // On teardown: release billable renderer capacity promptly.
@@ -393,8 +395,8 @@ session and renderer while returning a new `expiresAt` and viewer token. Renew
 only while the participant is present, schedule again from that expiry, and
 still call `end(id)` promptly at teardown. An expired or ended session cannot
 be renewed. `409` means the selected
-Metahuman is Standard; `503` means live rendering is unavailable. Both should
-fall back to a poster with local audio. See
+Metahuman is Standard 3D; `503` means live rendering is unavailable for its
+tier. Both should fall back to a poster with local audio. See
 [`premium-avatars.md`](./premium-avatars.md) for the full lifecycle.
 
 ## Audio

@@ -2,17 +2,17 @@
 
 The native Swift SDK puts a talking Metahuman in an iOS or macOS application
 with no WebView anywhere: native microphone capture, native gapless playback,
-SceneKit facial animation, and LiveKit-based Premium Avatars. It speaks the
+SceneKit facial animation, and LiveKit-based premium avatars. It speaks the
 same wire protocol as the browser bundle, against the same endpoints —
 `/oauth/token`, `/stt`, `/agent-stream`, and `/live-avatar-sessions` — so a
 deployment that serves the web SDK serves this one unchanged.
 
 Two packages:
 
-| Package             | What it is                                                                                                                                                                            |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `HopeMetahuman`     | The SDK: protocol clients, token providers, `MetahumanSession`, audio, SceneKit rendering, and the SwiftUI `HopeMetahumanView`.                                                       |
-| `HopeMetahumanLive` | Premium live avatars over WebRTC (LiveKit). Separate so a Standard-avatar application never links WebRTC — the same split the web SDK makes by dynamically importing its live module. |
+| Package             | What it is                                                                                                                                                                                          |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `HopeMetahuman`     | The SDK: protocol clients, token providers, `MetahumanSession`, audio, SceneKit rendering, and the SwiftUI `HopeMetahumanView`.                                                                     |
+| `HopeMetahumanLive` | Premium and Ultra Premium live avatars over WebRTC (LiveKit). Separate so a Standard 3D application never links WebRTC — the same split the web SDK makes by dynamically importing its live module. |
 
 Like the browser bundle, the implementation is commercially licensed and is
 not in this repository; it ships as a Swift package under your commercial
@@ -34,8 +34,8 @@ shasum -a 256 -c HopeMetahumanSwift-v0.1.0.zip.sha256
 
 Keep the two package directories together. In Xcode, choose **File → Add
 Package Dependencies… → Add Local…**, select `packages/sdk-swift`, and add the
-`HopeMetahuman` product to your application target. Premium applications also
-add the sibling `packages/sdk-swift-live` package and its
+`HopeMetahuman` product to your application target. Applications rendering
+either premium tier also add the sibling `packages/sdk-swift-live` package and its
 `HopeMetahumanLive` product; the live package resolves the core through the
 relative sibling path. The archive is source under the commercial licence—it
 is not published to the public browser CDN or committed to this MIT repository.
@@ -146,7 +146,7 @@ try await session.greet()            // after mounting the renderer; requires me
 try await session.startListening()   // prompts for microphone permission
 
 try await session.send("Hello")      // type instead of speak
-try await session.interrupt()        // cut the reply short; Premium waits for playback flush
+try await session.interrupt()        // cut the reply short; live video waits for playback flush
 await session.stopListening()
 session.setMicrophoneMuted(true)     // silence without releasing the device
 session.reset()                      // new conversation memory
@@ -156,7 +156,7 @@ try await session.dispose()
 Everything the web session documents holds here: `greet()` is idempotent per
 conversation and speaks one random configured greeting; committed non-empty
 utterances interrupt playback while VAD-only signals never do; `send` cuts the
-current reply short first and awaits the Premium flush before releasing
+current reply short first and awaits the renderer's flush before releasing
 replacement speech; tool handlers are read at each turn's start; cancellation
 surfaces as `HopeMetahumanError.runCancelled` and is normal control flow — the
 session swallows it on the hands-free path.
@@ -245,14 +245,19 @@ clock), `PcmPlayer` (AVFoundation playback), `BlendshapeBuffer`,
 `blendPoses`/`scalePose`, `arkitBlendshapeNames`/`speechBlendshapeNames`,
 `normalizeBlendshapeName`.
 
-## Premium Avatars
+## Premium avatars
 
 `LiveAvatarSessionClient` mirrors the REST contract in
 [docs/premium-avatars.md](./premium-avatars.md) — `start` (with
 `deferGreeting`), `renew`, `cancelPlayback` (resolves only after the renderer
 acknowledges the flush), `end` — with the same status semantics: 409 means not
-a Premium Avatar (fall back), 503 means no live rendering in this deployment,
-404 on renew means the lease already expired.
+a premium avatar (fall back), 503 means no live rendering for that tier in this
+deployment, 404 on renew means the lease already expired.
+
+Both premium tiers use this one client and coordinator. Nothing below branches
+on the tier, and a Metahuman's `avatarTier` (`STANDARD_3D` | `PREMIUM` |
+`ULTRA_PREMIUM`) is informational — useful for a badge in your own UI, not for
+choosing a code path.
 
 `HopeMetahumanLive` adds the media plane. `LiveAvatarCoordinator` runs the
 documented start sequence in the correct — and deadlock-prone if hand-rolled —
